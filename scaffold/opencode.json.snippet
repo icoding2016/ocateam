@@ -1,0 +1,35 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "ateam": {
+    "_comment": "List which ateam agents are active in this project. The orchestrator will only delegate to agents in this list. Remove entries to deactivate.",
+    "active_agents": [
+      "orchestrator",
+      "architect",
+      "developer",
+      "reviewer",
+      "explorer"
+    ]
+  },
+  "agent": {
+    "ateam-orchestrator": {
+      "permission": {
+        "task": {
+          "*": "deny",
+          "ateam-architect": "allow",
+          "ateam-developer": "allow",
+          "ateam-reviewer": "allow",
+          "ateam-explorer": "allow"
+        }
+      }
+    }
+  },
+  "_model_overrides_example": {
+    "_comment": "To override a model for a specific agent, add it under the 'agent' key. Example:",
+    "agent": {
+      "ateam-architect": { "model": "anthropic/claude-sonnet-4-20250514" },
+      "ateam-developer": { "model": "opencode/gpt-5.1-codex" },
+      "ateam-reviewer": { "model": "anthropic/claude-sonnet-4-20250514" },
+      "ateam-explorer": { "model": "anthropic/claude-haiku-4-20250514" }
+    }
+  }
+}
