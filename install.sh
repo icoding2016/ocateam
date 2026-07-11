@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# ATEAM Installer — install multi-agent framework into OpenCode
+# OCATeam Installer — install multi-agent framework into OpenCode
 # Repository: https://github.com/YOUR_ORG/ateam
 #
 # Usage:
@@ -11,7 +11,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ATEAM_DIR="$SCRIPT_DIR"
+OCATeam_DIR="$SCRIPT_DIR"
 
 # Colour helpers
 GREEN='\033[0;32m'
@@ -19,20 +19,32 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-log()  { echo -e "${GREEN}[ateam]${NC} $*"; }
-warn() { echo -e "${YELLOW}[ateam]${NC} $*"; }
-err()  { echo -e "${RED}[ateam]${NC} $*" >&2; }
+log()  { echo -e "${GREEN}[ocat]${NC} $*"; }
+warn() { echo -e "${YELLOW}[ocat]${NC} $*"; }
+err()  { echo -e "${RED}[ocat]${NC} $*" >&2; }
 
-install_global() {
-  local agents_src="$ATEAM_DIR/agents"
-  local agents_dest="$HOME/.config/opencode/agents"
-  local skills_src="$ATEAM_DIR/skills/ateam"
-  local skills_dest="$HOME/.config/opencode/skills/ateam"
+# Validate source directories/files exist
+validate_sources() {
+  local agents_src="$1"
+  local skills_src="$2"
 
   if [ ! -d "$agents_src" ]; then
     err "Agent source directory not found: $agents_src"
     exit 1
   fi
+  if [ ! -f "$skills_src/SKILL.md" ]; then
+    err "Skill source not found: $skills_src/SKILL.md"
+    exit 1
+  fi
+}
+
+install_global() {
+  local agents_src="$OCATeam_DIR/agents"
+  local agents_dest="$HOME/.config/opencode/agents"
+  local skills_src="$OCATeam_DIR/skills/ocat"
+  local skills_dest="$HOME/.config/opencode/skills/ocat"
+
+  validate_sources "$agents_src" "$skills_src"
 
   mkdir -p "$agents_dest" "$skills_dest"
 
@@ -49,30 +61,27 @@ install_global() {
   echo ""
   echo "  Next steps:"
   echo "    1. Open any project in OpenCode"
-  echo "    2. Press Tab to switch to the 'ateam-orchestrator' agent"
+  echo "    2. Press Tab to switch to the 'ocat-orchestrator' agent"
   echo "    3. Describe your project and the orchestrator will handle the rest"
   echo ""
   echo "  To customize models, edit: ~/.config/opencode/opencode.json"
   echo "    Example override:"
-  echo '    { "agent": { "ateam-developer": { "model": "openai/gpt-5" } } }'
+  echo '    { "agent": { "ocat-developer": { "model": "openai/gpt-5" } } }'
 }
 
 install_project() {
   local project_path="${1%/}"
-  local agents_src="$ATEAM_DIR/agents"
+  local agents_src="$OCATeam_DIR/agents"
   local agents_dest="$project_path/.opencode/agents"
-  local skills_src="$ATEAM_DIR/skills/ateam"
-  local skills_dest="$project_path/.opencode/skills/ateam"
+  local skills_src="$OCATeam_DIR/skills/ocat"
+  local skills_dest="$project_path/.opencode/skills/ocat"
 
   if [ ! -d "$project_path" ]; then
     err "Project directory not found: $project_path"
     exit 1
   fi
 
-  if [ ! -d "$agents_src" ]; then
-    err "Agent source directory not found: $agents_src"
-    exit 1
-  fi
+  validate_sources "$agents_src" "$skills_src"
 
   mkdir -p "$agents_dest" "$skills_dest"
 
@@ -85,17 +94,20 @@ install_project() {
   log "  ateam skill installed"
 
   # Scaffold opencode.json if it doesn't exist
-  local snippet="$ATEAM_DIR/scaffold/opencode.json.snippet"
+  local snippet="$OCATeam_DIR/scaffold/opencode.json.snippet"
+  local ateam_config="$OCATeam_DIR/scaffold/ocat.json.snippet"
   if [ -f "$snippet" ] && [ ! -f "$project_path/opencode.json" ]; then
     cp "$snippet" "$project_path/opencode.json"
-    log "Scaffolded opencode.json with ateam config"
+    log "Scaffolded opencode.json"
   elif [ -f "$snippet" ] && [ -f "$project_path/opencode.json" ]; then
     warn "opencode.json already exists — skipped scaffold"
-    echo ""
-    echo "  Merge this into your opencode.json manually:"
-    echo "  ---"
-    cat "$snippet"
-    echo "  ---"
+  fi
+  # Scaffold ocat.json (always warn if exists, never overwrite)
+  if [ -f "$ateam_config" ] && [ ! -f "$project_path/ocat.json" ]; then
+    cp "$ateam_config" "$project_path/ocat.json"
+    log "Scaffolded ocat.json with active agents config"
+  elif [ -f "$ateam_config" ] && [ -f "$project_path/ocat.json" ]; then
+    warn "ocat.json already exists — skipped scaffold"
   fi
 
   echo ""
@@ -110,7 +122,7 @@ install_project() {
 
 uninstall_global() {
   local agents_dest="$HOME/.config/opencode/agents"
-  local skills_dest="$HOME/.config/opencode/skills/ateam"
+  local skills_dest="$HOME/.config/opencode/skills/ocat"
 
   log "Removing ateam agents from $agents_dest"
   rm -f "$agents_dest"/ateam-*.md
@@ -122,7 +134,7 @@ uninstall_global() {
 uninstall_project() {
   local project_path="${1%/}"
   local agents_dest="$project_path/.opencode/agents"
-  local skills_dest="$project_path/.opencode/skills/ateam"
+  local skills_dest="$project_path/.opencode/skills/ocat"
 
   log "Removing ateam agents from $agents_dest"
   rm -f "$agents_dest"/ateam-*.md
@@ -131,13 +143,25 @@ uninstall_project() {
   log "Uninstall complete."
 }
 
+ateam_version() {
+  local version_file="$OCATeam_DIR/VERSION"
+  if [ -f "$version_file" ]; then
+    cat "$version_file"
+  else
+    echo "unknown"
+  fi
+}
+
 print_usage() {
+  echo "OCATeam v$(ateam_version)"
+  echo ""
   echo "Usage: $0 [--global | --project <path>] [--uninstall]"
   echo ""
   echo "Commands:"
-  echo "  --global              Install ATEAM globally (~/.config/opencode/)"
-  echo "  --project <path>      Install ATEAM into a specific project"
+  echo "  --global              Install OCATeam globally (~/.config/opencode/)"
+  echo "  --project <path>      Install OCATeam into a specific project"
   echo "  --uninstall           Remove a previous installation (use with --global or --project)"
+  echo "  -v, --version         Print OCATeam version"
   echo ""
   echo "Examples:"
   echo "  $0 --global                           # Install for all projects"
@@ -167,6 +191,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     -h|--help)
       print_usage
+      exit 0
+      ;;
+    -v|--version)
+      echo "OCATeam v$(ateam_version)"
       exit 0
       ;;
     *)
