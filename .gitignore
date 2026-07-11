@@ -1,0 +1,9 @@
+# Project board files (generated at runtime, not committed)
+boards/
+
+# Editor / OS
+.DS_Store
+*.swp
+*.swo
+*~
+.log/

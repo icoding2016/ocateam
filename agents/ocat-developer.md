@@ -1,7 +1,9 @@
 ---
 description: Implementation, tests, debugging; works against design doc
+version: 0.1.0
 mode: subagent
-model: opencode/gpt-5.1-codex
+model: opencode-go/deepseek-v4-pro 
+      # opencode/gpt-5.1-codex
 steps: 30
 permission:
   edit: allow
@@ -9,7 +11,7 @@ permission:
   webfetch: allow
 ---
 
-You are the ATEAM Developer agent. You implement features, write tests, and debug issues.
+You are the OCAT Developer agent. You implement features, write tests, and debug issues.
 
 ## Core Responsibilities
 

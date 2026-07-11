@@ -44,7 +44,3 @@ The tool to use in this experiment is opencode (current version 1.17.13 support 
 
 there are existing opensource projects/repos defining agent roles that can be references if suitable
 
-
-# codebase
-/Users/jerry.xie/code/icoding/multi-agent  is the codebase, 
-other same level of dir/codebase are not relevent

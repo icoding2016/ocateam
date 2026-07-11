@@ -1,5 +1,6 @@
 ---
-name: ateam
+name: ocat
+version: 0.1.0
 description: Multi-agent workflow for end-to-end project delivery (requirement analysis → design → implement/test/debug → quality gating). Use when starting a new software project, running through a full development lifecycle, or when the orchestrator needs workflow context for phase planning and delegation.
 license: MIT
 compatibility: opencode
@@ -8,11 +9,11 @@ metadata:
   workflow: multi-agent
 ---
 
-# ATEAM — Multi-Agent Project Delivery Workflow
+# OCATeam — Multi-Agent Project Delivery Workflow
 
 ## Overview
 
-ATEAM provides a structured, document-based workflow for running end-to-end software projects through OpenCode's multi-agent system. An Orchestrator (primary agent) coordinates four worker subagents (Architect, Developer, Reviewer, Explorer) through distinct phases with quality gates at every stage.
+OCATeam provides a structured, document-based workflow for running end-to-end software projects through OpenCode's multi-agent system. An Orchestrator (primary agent) coordinates four worker subagents (Architect, Developer, Reviewer, Explorer) through distinct phases with quality gates at every stage.
 
 ## When to Use
 
@@ -26,10 +27,10 @@ Load this skill when:
 
 ```
 User → Orchestrator (primary)
-         ├── ateam-architect (subagent) — system design
-         ├── ateam-developer (subagent) — implementation + tests
-         ├── ateam-reviewer  (subagent) — quality gate
-         └── ateam-explorer  (subagent) — research + inspection
+         ├── ocat-architect (subagent) — system design
+         ├── ocat-developer (subagent) — implementation + tests
+         ├── ocat-reviewer  (subagent) — quality gate
+         └── ocat-explorer  (subagent) — research + inspection
 ```
 
 All coordination is document-based via board files in `boards/`. Agents share the project workspace.
@@ -70,9 +71,10 @@ All coordination is document-based via board files in `boards/`. Agents share th
 **Owner**: Orchestrator → Developer (test focus)
 **Deliverable**: Test results + fixes in `boards/developer/<task_id>/board.md`
 
-- Developer runs full test suite
-- Developer fixes failing tests
-- Reviewer verifies test coverage and quality
+- Developer runs full test suite and reports results to task board
+- Developer fixes failing tests, with each fix going through the Implement/Refine → Review cycle
+- Reviewer verifies test coverage and quality (APPROVED / NEEDS_REVISION)
+- MAX_REVIEW_ITERATIONS applies per fix iteration (escalate after 3 without APPROVED)
 
 ### Phase 4: Quality Gate
 **Goal**: Final verification against original requirements.
@@ -92,7 +94,7 @@ Every implementation task follows this cycle:
 1. Orchestrator defines task → delegates to Developer via Task tool
 2. Developer implements + updates its task board
 3. Orchestrator delegates to Reviewer via Task tool
-4. Reviewer evaluates against: task goal, project goals, original requirements
+4. Reviewer evaluates against: task goal, project goals, original requirements, and user's key concerns
 5. Reviewer writes verdict → APPROVED / NEEDS_REVISION
 6. If APPROVED → Orchestrator proceeds to next task/phase
 7. If NEEDS_REVISION → Orchestrator re-delegates to Developer with Reviewer's feedback
@@ -209,19 +211,17 @@ boards/
 
 ## Activation Config
 
-The Orchestrator can read a project's `opencode.json` to determine which agents are active:
+The Orchestrator reads a project's `ocat.json` to determine which subagents are active:
 
 ```json
 {
-  "ateam": {
-    "active_agents": ["orchestrator", "architect", "developer", "reviewer", "explorer"]
-  }
+  "active_agents": ["architect", "developer", "reviewer", "explorer"]
 }
 ```
 
 - Only agents in `active_agents` are eligible for delegation
 - The effective set is the intersection of `active_agents` and the orchestrator's `permission.task` allowlist
-- If `active_agents` is absent, all agents in the allowlist are active
+- If `ocat.json` is absent, all agents in the allowlist are active
 - Remove entries from the list to deactivate unused agents for a project
 
 ---
@@ -230,11 +230,11 @@ The Orchestrator can read a project's `opencode.json` to determine which agents 
 
 | Agent | Mode | Purpose | Can Edit | Can Bash |
 |-------|------|---------|----------|----------|
-| ateam-orchestrator | primary | Plan, delegate, gate, escalate | ask | ask |
-| ateam-architect | subagent | System design, no code | allow | deny |
-| ateam-developer | subagent | Implementation + tests | allow | allow |
-| ateam-reviewer | subagent | Quality gate, read-only | deny | deny |
-| ateam-explorer | subagent | Research, inspection | deny | deny |
+| ocat-orchestrator | primary | Plan, delegate, gate, escalate | ask | ask |
+| ocat-architect | subagent | System design, no code | allow | deny |
+| ocat-developer | subagent | Implementation + tests | allow | allow |
+| ocat-reviewer | subagent | Quality gate, read-only | deny | deny |
+| ocat-explorer | subagent | Research, inspection | deny | deny |
 
 ---
 
