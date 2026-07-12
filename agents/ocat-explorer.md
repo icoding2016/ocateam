@@ -3,7 +3,6 @@ description: "Quick read-only research: codebase inspection, web lookup, small f
 version: 0.1.0
 mode: subagent
 model: opencode-go/deepseek-v4-flash
-      # anthropic/claude-haiku-4-20250514
 steps: 5
 permission:
   edit: deny

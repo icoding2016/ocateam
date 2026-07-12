@@ -66,7 +66,7 @@ graph TD
 **Global mode** — agents + skill available in ALL projects:
 ```bash
 ./install.sh --global
-# Copies agents → ~/.config/opencode/agents/ateam-*.md
+# Copies agents → ~/.config/opencode/agents/ocat-*.md
 # Copies skill  → ~/.config/opencode/skills/ocat/SKILL.md
 ```
 After install: open any project, `Tab` → `ocat-orchestrator`, describe your project. Zero per-project files needed.
@@ -74,7 +74,7 @@ After install: open any project, `Tab` → `ocat-orchestrator`, describe your pr
 **Per-project mode** — agents + skill committed to a specific project:
 ```bash
 ./install.sh --project ~/code/my-app
-# Copies agents → my-app/.opencode/agents/ateam-*.md
+# Copies agents → my-app/.opencode/agents/ocat-*.md
 # Copies skill  → my-app/.opencode/skills/ocat/SKILL.md
 # Scaffolds     → my-app/opencode.json (minimal, if absent)
 # Scaffolds     → my-app/ocat.json (OCATeam active agents config, if absent)
@@ -108,13 +108,13 @@ Sensible defaults are provided. Override in `opencode.json`:
 
 ```
 # One-time setup:
-cd ateam && ./install.sh --global
+cd ocateam && ./install.sh --global
 
 # Every new project thereafter:
 opencode my-project/
 # Tab → "ocat-orchestrator"
 # Type: "Start a new project: <description>"
-# Orchestrator loads the ateam skill and runs Phase 0 → 4
+# Orchestrator loads the ocat skill and runs Phase 0 → 4
 ```
 
 ### 3.6 Configuration Mechanism
@@ -126,7 +126,7 @@ OCATeam uses two configuration files at the project root, each with a distinct r
 | `ocat.json` | OCATeam-specific: lists which subagents the orchestrator may delegate to | `install.sh --project` | Custom (no schema conflict) |
 | `opencode.json` | OpenCode-native: model overrides, agent permissions, plugin config | `install.sh --project` (minimal) | OpenCode schema |
 
-**Why separate files?** `opencode.json` is validated against OpenCode's schema, which rejects unknown keys. Placing OCATeam config under an `"ocat"` key in `opencode.json` causes OpenCode to fail with `Unrecognized key: ateam`. A separate `ocat.json` file avoids this conflict while keeping OCATeam config co-located with the project.
+**Why separate files?** `opencode.json` is validated against OpenCode's schema, which rejects unknown keys. Placing OCATeam config under an `"ocat"` key in `opencode.json` causes OpenCode to fail with `Unrecognized key: ocateam`. A separate `ocat.json` file avoids this conflict while keeping OCATeam config co-located with the project.
 
 **Activation resolution order:**
 1. Look for `<project>/ocat.json`
@@ -149,10 +149,10 @@ OCATeam uses two configuration files at the project root, each with a distinct r
 - `mode: primary`
 - `model: anthropic/claude-sonnet-4-20250514` (strong reasoning model; overridable)
 - `steps: 40`
-- `permission.task`: denies `*`, allows the four `ateam-*` workers
+- `permission.task`: denies `*`, allows the four `ocat-*` workers
 
 **Key behaviors:**
-1. Load the ateam skill at session start for full workflow context
+1. Load the ocat skill at session start for full workflow context
 2. Read `ocat.json` for `active_agents` to determine which subagents are active (falls back to all allowed if absent)
 3. Maintain the master board: `boards/orchestrator/<project>/board.md`
 4. Control the implement/refine → review cycle (MAX_REVIEW_ITERATIONS = 3)
@@ -259,7 +259,7 @@ boards/
 - The Orchestrator always updates the master board before delegating
 - Subagents write outputs to their board file
 - The Orchestrator reads board files to track progress and make decisions
-- Board templates are defined in the ateam Skill
+- Board templates are defined in the ocat Skill
 
 ### 5.4 Escalation Policy
 
@@ -291,7 +291,7 @@ The `ocat` skill (`skills/ocat/SKILL.md`) is the workflow intelligence layer —
 
 | Decision | Rationale |
 |----------|-----------|
-| **`ateam-` prefix on agent names** | Avoids name collisions when installed globally alongside user's other agents |
+| **`ocat-` prefix on agent names** | Avoids name collisions when installed globally alongside user's other agents |
 | **Skill for workflow, agents for roles** | Separates "what to do" (skill) from "who does it" (agents); skill is independently updatable |
 | **Two install modes (global + per-project)** | Global = zero-setup; per-project = team-committed, customizable |
 | **`active_agents` list in `ocat.json` for activation** | Simple UX — edit a list, not permission blocks; orchestrator reads and respects it. Separate from `opencode.json` to avoid schema conflicts with OpenCode's config validation. |
@@ -309,7 +309,7 @@ The `ocat` skill (`skills/ocat/SKILL.md`) is the workflow intelligence layer —
 ## 8. Repository Structure
 
 ```
-ateam/
+ocat/
 ├── doc/
 │   ├── prj_goal.md                    # Original project goal
 │   └── design.md                      # This document
@@ -320,7 +320,7 @@ ateam/
 │   ├── ocat-reviewer.md
 │   └── ocat-explorer.md
 ├── skills/
-│   └── ateam/
+│   └── ocat/
 │       └── SKILL.md                   # Workflow skill
 ├── scaffold/
 │   ├── opencode.json.snippet          # Minimal per-project opencode config

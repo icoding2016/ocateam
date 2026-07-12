@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # OCATeam Installer — install multi-agent framework into OpenCode
-# Repository: https://github.com/YOUR_ORG/ateam
+# Repository: https://github.com/YOUR_ORG/ocateam
 #
 # Usage:
 #   ./install.sh --global              # Install globally (~/.config/opencode/)
@@ -54,7 +54,7 @@ install_global() {
 
   log "Installing skill → $skills_dest"
   cp "$skills_src/SKILL.md" "$skills_dest/"
-  log "  ateam skill installed"
+  log "  ocat skill installed"
 
   echo ""
   log "Installation complete!"
@@ -91,11 +91,11 @@ install_project() {
 
   log "Installing skill → $skills_dest"
   cp "$skills_src/SKILL.md" "$skills_dest/"
-  log "  ateam skill installed"
+  log "  ocat skill installed"
 
   # Scaffold opencode.json if it doesn't exist
   local snippet="$OCATeam_DIR/scaffold/opencode.json.snippet"
-  local ateam_config="$OCATeam_DIR/scaffold/ocat.json.snippet"
+  local ocat_config="$OCATeam_DIR/scaffold/ocat.json.snippet"
   if [ -f "$snippet" ] && [ ! -f "$project_path/opencode.json" ]; then
     cp "$snippet" "$project_path/opencode.json"
     log "Scaffolded opencode.json"
@@ -103,10 +103,10 @@ install_project() {
     warn "opencode.json already exists — skipped scaffold"
   fi
   # Scaffold ocat.json (always warn if exists, never overwrite)
-  if [ -f "$ateam_config" ] && [ ! -f "$project_path/ocat.json" ]; then
-    cp "$ateam_config" "$project_path/ocat.json"
+  if [ -f "$ocat_config" ] && [ ! -f "$project_path/ocat.json" ]; then
+    cp "$ocat_config" "$project_path/ocat.json"
     log "Scaffolded ocat.json with active agents config"
-  elif [ -f "$ateam_config" ] && [ -f "$project_path/ocat.json" ]; then
+  elif [ -f "$ocat_config" ] && [ -f "$project_path/ocat.json" ]; then
     warn "ocat.json already exists — skipped scaffold"
   fi
 
@@ -124,9 +124,9 @@ uninstall_global() {
   local agents_dest="$HOME/.config/opencode/agents"
   local skills_dest="$HOME/.config/opencode/skills/ocat"
 
-  log "Removing ateam agents from $agents_dest"
-  rm -f "$agents_dest"/ateam-*.md
-  log "Removing ateam skill from $skills_dest"
+  log "Removing ocat agents from $agents_dest"
+  rm -f "$agents_dest"/ocat-*.md
+  log "Removing ocat skill from $skills_dest"
   rm -rf "$skills_dest"
   log "Uninstall complete."
 }
@@ -136,14 +136,14 @@ uninstall_project() {
   local agents_dest="$project_path/.opencode/agents"
   local skills_dest="$project_path/.opencode/skills/ocat"
 
-  log "Removing ateam agents from $agents_dest"
-  rm -f "$agents_dest"/ateam-*.md
-  log "Removing ateam skill from $skills_dest"
+  log "Removing ocat agents from $agents_dest"
+  rm -f "$agents_dest"/ocat-*.md
+  log "Removing ocat skill from $skills_dest"
   rm -rf "$skills_dest"
   log "Uninstall complete."
 }
 
-ateam_version() {
+ocat_version() {
   local version_file="$OCATeam_DIR/VERSION"
   if [ -f "$version_file" ]; then
     cat "$version_file"
@@ -153,7 +153,7 @@ ateam_version() {
 }
 
 print_usage() {
-  echo "OCATeam v$(ateam_version)"
+  echo "OCATeam v$(ocat_version)"
   echo ""
   echo "Usage: $0 [--global | --project <path>] [--uninstall]"
   echo ""
@@ -194,7 +194,7 @@ while [[ $# -gt 0 ]]; do
       exit 0
       ;;
     -v|--version)
-      echo "OCATeam v$(ateam_version)"
+      echo "OCATeam v$(ocat_version)"
       exit 0
       ;;
     *)

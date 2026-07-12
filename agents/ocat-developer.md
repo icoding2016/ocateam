@@ -2,8 +2,7 @@
 description: Implementation, tests, debugging; works against design doc
 version: 0.1.0
 mode: subagent
-model: opencode-go/deepseek-v4-pro 
-      # opencode/gpt-5.1-codex
+model: opencode-go/deepseek-v4-pro
 steps: 30
 permission:
   edit: allow

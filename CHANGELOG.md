@@ -25,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Design Decisions
 - All orchestration logic in agent prompts + skill; no external wrapper script
-- `ateam-` prefix on agent names for global install safety
+- `ocat-` prefix on agent names for global install safety
 - Skill for workflow context, agents for role definitions
 - Document-based coordination via `boards/` directory
 - Reviewer is read-only gatekeeper (edit: deny, bash: deny)
