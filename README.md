@@ -23,8 +23,8 @@ OCATeam is a reusable **multi-agent framework** for running end-to-end software 
 ### 1. Install (one-time)
 
 ```bash
-git clone https://github.com/YOUR_ORG/ateam.git
-cd ateam
+git clone https://github.com/YOUR_ORG/ocateam.git
+cd ocateam
 
 # Global install: agents available in EVERY project
 ./install.sh --global
@@ -99,7 +99,7 @@ Override agent models in the standard OpenCode config:
 ## Project Structure
 
 ```
-ateam/
+ocat/
 ├── agents/                  # Agent role definitions (YAML frontmatter + Markdown)
 │   ├── ocat-orchestrator.md
 │   ├── ocat-architect.md

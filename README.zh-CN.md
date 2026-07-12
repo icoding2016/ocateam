@@ -23,8 +23,8 @@ OCATeam 是一个可复用的**多智能体框架**，通过 OpenCode 的 agent 
 ### 1. 安装（一次性）
 
 ```bash
-git clone https://github.com/YOUR_ORG/ateam.git
-cd ateam
+git clone https://github.com/YOUR_ORG/ocateam.git
+cd ocateam
 
 # 全局安装：所有项目中均可使用
 ./install.sh --global
@@ -99,7 +99,7 @@ opencode my-project/
 ## 项目结构
 
 ```
-ateam/
+ocat/
 ├── agents/                  # Agent 角色定义（YAML frontmatter + Markdown）
 │   ├── ocat-orchestrator.md
 │   ├── ocat-architect.md

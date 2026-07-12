@@ -15,8 +15,8 @@ Thanks for your interest in contributing! OCATeam is an agent-definition framewo
 ## Setup
 
 ```bash
-git clone https://github.com/YOUR_ORG/ateam.git
-cd ateam
+git clone https://github.com/YOUR_ORG/ocateam.git
+cd ocateam
 
 # Run validation after any change
 make validate
@@ -24,7 +24,7 @@ make validate
 
 ## Agent File Conventions
 
-Agent definition files (`agents/ateam-*.md`) follow this structure:
+Agent definition files (`agents/ocat-*.md`) follow this structure:
 
 ```markdown
 ---
@@ -44,7 +44,7 @@ permission:
 
 Rules:
 - **YAML frontmatter must be valid** — colons in values must be quoted
-- **`ateam-` prefix** is mandatory for all agent filenames
+- **`ocat-` prefix** is mandatory for all agent filenames
 - **`steps:` cap** is required on all subagents
 - **`mode:`** must be `primary` (only orchestrator) or `subagent` (all others)
 - Agent prompts must reference board file output paths

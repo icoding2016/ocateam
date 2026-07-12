@@ -43,9 +43,9 @@ OCATeam is "meta-software" — agent definitions (Markdown + YAML frontmatter), 
 | JSON validity | `scaffold/opencode.json.snippet` is valid JSON |
 | JSON validity | `scaffold/ocat.json.snippet` is valid JSON |
 | Required fields | Each agent has `mode`, `model`, `permission`; Architect/Reviewer have `steps` |
-| Agent count | Exactly 5 files matching `agents/ateam-*.md` |
-| Naming convention | All agent filenames start with `ateam-` |
-| Skill frontmatter | `SKILL.md` has `name: ateam` |
+| Agent count | Exactly 5 files matching `agents/ocat-*.md` |
+| Naming convention | All agent filenames start with `ocat-` |
+| Skill frontmatter | `SKILL.md` has `name: ocat` |
 | Agent roles table | Names in `SKILL.md` agent table match actual filenames |
 | Snippet keys | `ocat.json.snippet` contains `active_agents` |
 | No hardcoded paths | `install.sh` doesn't contain `/home/` paths (portability guard) |
@@ -66,8 +66,8 @@ OCATeam is "meta-software" — agent definitions (Markdown + YAML frontmatter), 
 |---|---|
 | `global: installs agents and skill` | `--global` copies all agent `.md` files and `SKILL.md` to `~/.config/opencode/` |
 | `global: creates target directories` | Installer creates `agents/` and `skills/ocat/` dirs if absent |
-| `global: installs exactly 5 agent files` | 5 `ateam-*.md` files land in destination |
-| `global: uninstall removes all ateam files` | `--uninstall --global` removes agents and skill directory |
+| `global: installs exactly 5 agent files` | 5 `ocat-*.md` files land in destination |
+| `global: uninstall removes all ocat files` | `--uninstall --global` removes agents and skill directory |
 | `global: uninstall is idempotent` | Running uninstall twice doesn't error |
 | `project: installs agents and skill` | `--project <dir>` copies files to `<dir>/.opencode/` |
 | `project: scaffolds opencode.json` | Creates `opencode.json` from snippet when absent |

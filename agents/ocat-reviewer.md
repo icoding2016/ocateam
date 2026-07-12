@@ -2,8 +2,7 @@
 description: Skeptical quality gate for all stage outputs; APPROVED or NEEDS_REVISION verdict
 version: 0.1.0
 mode: subagent
-model: opencode-go/glm-5.2 
-      # anthropic/claude-sonnet-4-20250514
+model: opencode-go/deepseek-v4-pro
 temperature: 0.1
 steps: 20
 permission:

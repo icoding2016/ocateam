@@ -2,8 +2,7 @@
 description: "Lead agent: plans, delegates to ocat subagents via Task tool, gates quality, escalates to user"
 version: 0.1.0
 mode: primary
-model: opencode-go/qwen3.7-plus 
-      # anthropic/claude-sonnet-4-20250514
+model: opencode-go/qwen3.7-plus
 steps: 40
 permission:
   edit: ask

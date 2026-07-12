@@ -2,8 +2,7 @@
 description: System design and analysis; produces design docs; no code
 version: 0.1.0
 mode: subagent
-model: opencode-go/glm-5.2 
-      # anthropic/claude-sonnet-4-20250514
+model: opencode-go/glm-5.2
 temperature: 0.2
 steps: 25
 permission:
