@@ -144,7 +144,11 @@ All coordination is document-based via board files in `.boards/`. Agents share t
 **Owner**: Orchestrator → Reviewer
 **Deliverable**: Final review verdict in `.boards/reviewer/<task_id>/board.md`
 
-- Reviewer checks: all requirements met, tests pass, no regressions, documentation complete
+- Reviewer applies all four review dimensions:
+  - **First-Principles Review**: question every element from fundamentals
+  - **User-Value Alignment**: check for deviation, omission, over-engineering
+  - **Requirement Traceability**: every output must trace to a user requirement
+  - **Contamination Detection**: flag anything that doesn't belong to this project's ecosystem
 - Final verdict: APPROVED or NEEDS_REVISION
 
 ---
@@ -157,7 +161,11 @@ Every implementation task follows this cycle:
 1. Orchestrator defines task → delegates to Developer via Task tool
 2. Developer implements + updates its task board
 3. Orchestrator delegates to Reviewer via Task tool
-4. Reviewer evaluates against: task goal, project goals, original requirements, and user's key concerns
+4. Reviewer evaluates against all four review dimensions:
+   - **First-Principles Review**: question every element from fundamentals
+   - **User-Value Alignment**: check deviation, omission, and over-engineering from the user's perspective
+   - **Requirement Traceability**: every output element must trace to a requirement
+   - **Contamination Detection**: flag cross-project/platform elements that don't belong
 5. Reviewer writes verdict → APPROVED / NEEDS_REVISION
 6. If APPROVED → Orchestrator proceeds to next task/phase
 7. If NEEDS_REVISION → Orchestrator re-delegates to Developer with Reviewer's feedback

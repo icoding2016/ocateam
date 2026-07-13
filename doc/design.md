@@ -228,7 +228,7 @@ graph LR
 | 1: Design | Architect | Design document, reviewed by Reviewer |
 | 2: Implementation | Developer | Code + tests, gated by Reviewer |
 | 3: Testing & Debugging | Developer | Test results + fixes |
-| 4: Quality Gate | Reviewer | Final verdict against original requirements |
+| 4: Quality Gate | Reviewer | Final verdict across all four review dimensions |
 
 ### 5.2 Implement/Refine → Review Cycle
 
@@ -236,7 +236,11 @@ graph LR
 1. Orchestrator defines task → delegates to Developer via Task tool
 2. Developer implements + updates its task board
 3. Orchestrator delegates to Reviewer via Task tool
-4. Reviewer evaluates against task goal, project goals, original requirements
+4. Reviewer evaluates against four review dimensions:
+   - **First-Principles Review**: question every element from fundamentals
+   - **User-Value Alignment**: check deviation, omission, and over-engineering
+   - **Requirement Traceability**: every output must trace to a user requirement
+   - **Contamination Detection**: flag cross-project/platform elements
 5. Reviewer writes verdict → APPROVED or NEEDS_REVISION
 6. If APPROVED → proceed to next task/phase
 7. If NEEDS_REVISION → re-delegate to Developer with Reviewer's feedback
@@ -544,6 +548,30 @@ For existing projects using OCATeam v0.1.x:
      "active_agents": [...]
    }
    ```
+
+### 11.8 Four-Dimension Review Framework
+
+**Problem:** Subagent outputs can drift from project goals — introducing features that were not requested (over-engineering), omitting requested features, or importing concepts from unrelated platforms (ecosystem contamination). The OpenClaw incident (OpenClaw-specific metadata added to an OpenCode-only project) exposed this gap.
+
+**Decision:**
+Add four explicit review dimensions to the Reviewer agent and mandate them in every review:
+
+1. **First-Principles Review** — Question every design decision and implementation from fundamentals. Does this element solve a real problem? Is it the simplest possible approach?
+2. **User-Value Alignment** — Evaluate from the user's perspective. Check for: deviation from requirements, omission of requirements, over-engineering (features not asked for), and gold-plating (nice-to-haves that don't serve core goals).
+3. **Requirement Traceability** — Every element in the output must trace back to a documented user requirement. Orphan elements without justification must be flagged.
+4. **Contamination Detection** — Vigilantly check for cross-project or cross-platform elements: dependencies, API calls, or configurations from a different ecosystem than the project uses; hallucinated constraints never stated by the user; template/boilerplate remnants.
+
+**Rationale:**
+- Agents can hallucinate dependencies or confuse platforms (OpenCode vs OpenClaw)
+- Without explicit traceability, subagents may add features the user never asked for
+- The reviewer, as the final quality gate, is the best place to catch these issues
+- Making these dimensions explicit (rather than implicit "check against requirements") forces the reviewer to engage critically with every element
+
+**Implementation:**
+- Update `agents/ocat-reviewer.md` with the four review dimensions and updated output format
+- Update `skills/ocat/SKILL.md` review cycle and Phase 4 description
+- Update `agents/ocat-orchestrator.md` Review & Gate responsibility
+- Reviewers must report pass/fail for each dimension in their verdict
 
 ---
 
