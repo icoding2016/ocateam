@@ -3,12 +3,7 @@ description: "Lead agent: plans, delegates to ocat subagents via Task tool, gate
 version: 0.2.0
 mode: primary
 model: opencode-go/qwen3.7-plus
-thinking: high
 steps: 1000
-options:
-  thinking:
-    type: enabled
-    budgetTokens: 16000
 permission:
   edit: ask
   bash: ask
