@@ -5,7 +5,7 @@ mode: subagent
 model: opencode-go/glm-5.2
 thinking: high
 temperature: 0.2
-steps: 25
+steps: 50
 permission:
   edit: allow
   bash: deny
@@ -41,4 +41,4 @@ Write your design to the board file specified by the Orchestrator (typically `.b
 
 ## Model Configuration
 
-This agent benefits from high thinking/reasoning for deep architectural analysis (budget_tokens >= 16000 recommended). Configure in your `opencode.json` via the provider's model options if you need to adjust the thinking budget.
+This agent declares `thinking: high` for deep architectural analysis. This field is currently declarative (routed to `options.thinking`). For actual thinking/reasoning control, track OpenCode Issue #33013 (unified effort ladder).

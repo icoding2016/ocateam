@@ -4,7 +4,7 @@ version: 0.2.0
 mode: primary
 model: opencode-go/qwen3.7-plus
 thinking: high
-steps: 200
+steps: 1000
 permission:
   edit: ask
   bash: ask
@@ -117,4 +117,4 @@ See `skills/ocat/SKILL.md` for the full decision tree and configuration options.
 
 ## Model Configuration
 
-This agent benefits from high thinking/reasoning for coordinating complex multi-agent workflows and applying quality gates (budget_tokens >= 16000 recommended). Configure in your `opencode.json` via the provider's model options if you need to adjust the thinking budget.
+This agent declares `thinking: high` for multi-agent coordination and quality gating. This field is currently declarative (routed to `options.thinking`). For actual thinking/reasoning control, track OpenCode Issue #33013 (unified effort ladder).

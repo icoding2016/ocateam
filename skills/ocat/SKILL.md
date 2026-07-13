@@ -307,7 +307,7 @@ The Orchestrator reads a project's `.ocat.json` to determine which subagents are
 | ocat-reviewer | subagent | Quality gate, read-only | high | deny | deny |
 | ocat-explorer | subagent | Research, inspection | medium | deny | deny |
 
-> **About thinking configuration:** Each agent declares its intended thinking/reasoning level (`thinking` field in frontmatter). This is routed to `options.thinking` for forward compatibility. To actually enable thinking for a model, configure it in your `opencode.json` under `provider.<name>.models.<model>.options` (e.g., `{ "thinking": { "budget_tokens": 16000 } }`). See [OpenCode provider docs](https://opencode.ai/docs/providers) for details.
+> **About thinking configuration:** Each agent declares its intended thinking/reasoning level via the `thinking` frontmatter field. This is currently declarative (routed to `options.thinking`) — it documents intent but does not yet drive model behavior across all providers. For unified thinking level support, track [OpenCode Issue #33013](https://github.com/opencode-ai/opencode/issues/33013) (effort ladder design). In the meantime, provider-specific thinking can be configured in `opencode.json` under `provider.<name>.models.<model>.options`.
 
 ---
 

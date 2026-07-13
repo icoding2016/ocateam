@@ -5,7 +5,7 @@ mode: subagent
 model: opencode-go/deepseek-v4-pro
 thinking: high
 temperature: 0.1
-steps: 20
+steps: 30
 permission:
   edit: deny
   bash: deny
@@ -95,4 +95,4 @@ Write your verdict to the board file specified by the Orchestrator (typically `.
 
 ## Model Configuration
 
-This agent benefits from high thinking/reasoning for deep, skeptical review (budget_tokens >= 16000 recommended). Configure in your `opencode.json` via the provider's model options if you need to adjust the thinking budget.
+This agent declares `thinking: high` for deep, skeptical review. This field is currently declarative (routed to `options.thinking`). For actual thinking/reasoning control, track OpenCode Issue #33013 (unified effort ladder).

@@ -578,7 +578,7 @@ Add four explicit review dimensions to the Reviewer agent and mandate them in ev
 **Problem:** OCATeam agents need appropriate thinking/reasoning depth for their roles (Architect/Developer/Reviewer need deep reasoning; Explorer needs lighter, faster responses). Without explicit configuration, all agents use the model's default thinking behavior, which may not be optimal for each role.
 
 **Decision:**
-Add a `thinking` field to each agent's frontmatter, documenting the intended thinking level:
+Add a `thinking` field to each agent's frontmatter, documenting the intended thinking level. This field is currently **declarative** — it documents intent but does not drive model behavior across all providers, as OpenCode lacks a unified cross-provider thinking level mechanism.
 
 | Agent | Thinking Level | Rationale |
 |-------|---------------|-----------|
@@ -588,17 +588,25 @@ Add a `thinking` field to each agent's frontmatter, documenting the intended thi
 | ocat-reviewer | high | Rigorous, skeptical review requiring deep analysis |
 | ocat-explorer | medium | Quick, focused research — speed over depth |
 
+**Evolution Path:**
+
+1. **Short term (current):** `thinking` field in frontmatter is routed to `options.thinking` by OpenCode. This is a passive metadata field — no provider integration. The field declares intent for human readers and for potential future OpenCode support.
+
+2. **Mid term:** Track [OpenCode Issue #33013](https://github.com/opencode-ai/opencode/issues/33013) for unified effort ladder design. If the issue progresses, align the `thinking` field values (`high`, `medium`) with the official effort ladder levels.
+
+3. **Long term:** When OpenCode adopts a standardized effort ladder across providers, the `thinking` field can become functional — OpenCode would read `options.thinking` (or a native `thinking` field) and translate it to the appropriate provider-specific parameters (reasoning budget, token allocation, etc.).
+
 **Implementation:**
 1. Add `thinking: high` or `thinking: medium` to each agent's YAML frontmatter
-2. Add a "Model Configuration" section to each agent's prompt explaining the thinking recommendation
+2. Add a "Model Configuration" section to each agent's prompt explaining the intent
 3. Update `skills/ocat/SKILL.md` Agent Roles Summary table to include the Thinking column
-4. Document the trade-off: `thinking` field is routed to `options.thinking` for forward compatibility; users who want to actually enable thinking must configure it in their `opencode.json` under `provider.<name>.models.<model>.options`
+4. Document current limitations and future path in design doc and README
 
 **Rationale:**
 - Different OCATeam roles need different thinking depths — a single default doesn't fit all
 - The frontmatter field declares intent without breaking existing OpenCode config (unknown fields are silently routed to `options`)
-- Documenting in the prompt text means the agent itself can explain its thinking requirements when asked
-- Users who want to actually enable thinking can follow the docs to configure their provider model options
+- The field is forward-compatible: if/when OpenCode adds native effort ladder, it can read `thinking` directly
+- Variations in variant names across providers (DeepSeek, GLM, Qwen) make a single `variant` value impractical — a unified effort ladder is the right long-term solution
 
 ---
 

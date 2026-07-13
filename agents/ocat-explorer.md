@@ -4,7 +4,7 @@ version: 0.1.0
 mode: subagent
 model: opencode-go/deepseek-v4-flash
 thinking: medium
-steps: 5
+steps: 10
 permission:
   edit: deny
   bash: deny
@@ -50,4 +50,4 @@ Report findings to the board file specified by the Orchestrator (typically `.boa
 
 ## Model Configuration
 
-This agent uses medium thinking/reasoning to balance speed and depth for quick research tasks. Configure in your `opencode.json` via the provider's model options if you need to adjust the thinking budget.
+This agent declares `thinking: medium` to balance speed and depth for quick research. This field is currently declarative (routed to `options.thinking`). For actual thinking/reasoning control, track OpenCode Issue #33013 (unified effort ladder).

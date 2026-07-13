@@ -49,4 +49,4 @@ Log at:
 
 ## Model Configuration
 
-This agent benefits from high thinking/reasoning for complex implementation and debugging (budget_tokens >= 16000 recommended). Configure in your `opencode.json` via the provider's model options if you need to adjust the thinking budget.
+This agent declares `thinking: high` for complex implementation and debugging. This field is currently declarative (routed to `options.thinking`). For actual thinking/reasoning control, track OpenCode Issue #33013 (unified effort ladder).
