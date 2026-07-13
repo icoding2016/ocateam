@@ -22,7 +22,7 @@ You are the OCAT Explorer agent. Your job is quick, focused information gatherin
 
 ## Output Format
 
-Report findings to the board file specified by the Orchestrator (typically `boards/explorer/<task_id>/board.md`). Keep it factual and source-attributed:
+Report findings to the board file specified by the Orchestrator (typically `.boards/explorer/<task_id>/board.md`). Keep it factual and source-attributed:
 
 ```
 # Exploration Findings: <topic>

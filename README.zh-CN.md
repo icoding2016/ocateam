@@ -13,7 +13,7 @@ OCATeam 是一个可复用的**多智能体框架**，通过 OpenCode 的 agent 
 
 - **5 个专业 agent**：协调者（Orchestrator）、架构师（Architect）、开发者（Developer）、审查者（Reviewer）、探索者（Explorer）
 - **5 个工作流阶段**：需求分析 → 设计 → 实现 → 测试 → 质量门
-- **基于文档的协调**：所有 agent 通过 `boards/` 目录下的文档进行沟通
+- **基于文档的协调**：所有 agent 通过 `.boards/` 目录下的文档进行沟通
 - **每阶段质量把关**：实现/改进 → 审查循环，自动升级机制
 
 **核心理念：** OpenCode 支持 primary + subagent 架构，但不内置编排逻辑。OCATeam 将编排逻辑编码到 agent prompts 和工作流 Skill 中——无需外部包装脚本。
@@ -69,9 +69,9 @@ opencode my-project/
 
 ## 配置
 
-### Agent 激活 (`ocat.json`)
+### Agent 激活 (`.ocat.json`)
 
-按项目安装时会自动创建 `ocat.json` 来控制哪些 subagent 处于激活状态：
+按项目安装时会自动创建 `.ocat.json` 来控制哪些 subagent 处于激活状态：
 
 ```json
 {
@@ -80,7 +80,7 @@ opencode my-project/
 ```
 
 - 移除条目可停用特定项目的 agent
-- 如果 `ocat.json` 不存在（全局安装），所有 agent 默认激活
+- 如果 `.ocat.json` 不存在（全局安装），所有 agent 默认激活
 
 ### 模型覆盖 (`opencode.json`)
 
@@ -94,7 +94,7 @@ opencode my-project/
 }
 ```
 
-> **为什么有两个配置文件？** `opencode.json` 受 OpenCode schema 校验，会拒绝未知的 key。OCATeam 的配置放在独立的 `ocat.json` 中，避免 schema 冲突。
+> **为什么有两个配置文件？** `opencode.json` 受 OpenCode schema 校验，会拒绝未知的 key。OCATeam 的配置放在独立的 `.ocat.json` 中，避免 schema 冲突。
 
 ## 项目结构
 

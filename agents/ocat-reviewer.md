@@ -34,7 +34,7 @@ You are the OCAT Reviewer agent — the skeptical quality gate for all stage out
 
 ## Output Format
 
-Write your verdict to the board file specified by the Orchestrator (typically `boards/reviewer/<task_id>/board.md`). Format:
+Write your verdict to the board file specified by the Orchestrator (typically `.boards/reviewer/<task_id>/board.md`). Format:
 
 ```
 # Review Verdict: [APPROVED / NEEDS_REVISION]

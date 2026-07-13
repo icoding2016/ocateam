@@ -13,7 +13,7 @@ OCATeam is a reusable **multi-agent framework** for running end-to-end software 
 
 - **5 specialized agents**: Orchestrator, Architect, Developer, Reviewer, Explorer
 - **5 workflow phases**: Requirements → Design → Implementation → Testing → Quality Gate
-- **Document-based coordination**: All agents communicate through board files in `boards/`
+- **Document-based coordination**: All agents communicate through board files in `.boards/`
 - **Quality gates at every stage**: Implement/refine → review cycle with automatic escalation
 
 **Key insight:** OpenCode supports primary + subagent architecture but doesn't ship orchestration logic. OCATeam encodes the orchestration into agent prompts and a workflow Skill — no external wrapper needed.
@@ -69,9 +69,9 @@ Each implementation task runs through an **Implement/Refine → Review** cycle (
 
 ## Configuration
 
-### Agent Activation (`ocat.json`)
+### Agent Activation (`.ocat.json`)
 
-Per-project installs scaffold an `ocat.json` to control which subagents are active:
+Per-project installs scaffold an `.ocat.json` to control which subagents are active:
 
 ```json
 {
@@ -80,7 +80,7 @@ Per-project installs scaffold an `ocat.json` to control which subagents are acti
 ```
 
 - Remove entries to deactivate agents for a specific project
-- If `ocat.json` is absent (global install), all agents are active
+- If `.ocat.json` is absent (global install), all agents are active
 
 ### Model Overrides (`opencode.json`)
 
@@ -94,7 +94,7 @@ Override agent models in the standard OpenCode config:
 }
 ```
 
-> **Why two config files?** `opencode.json` is validated against OpenCode's schema, which rejects unknown keys. OCATeam config lives in `ocat.json` to avoid schema conflicts.
+> **Why two config files?** `opencode.json` is validated against OpenCode's schema, which rejects unknown keys. OCATeam config lives in `.ocat.json` to avoid schema conflicts.
 
 ## Project Structure
 

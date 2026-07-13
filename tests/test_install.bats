@@ -96,12 +96,12 @@ run_project() {
 @test "project: installs agents and skill" {
   run run_project --project "$TEST_PROJECT"
   [ "$status" -eq 0 ]
-  [ -f "$TEST_PROJECT/.opencode/agents/ocat-orchestrator.md" ]
-  [ -f "$TEST_PROJECT/.opencode/agents/ocat-architect.md" ]
-  [ -f "$TEST_PROJECT/.opencode/agents/ocat-developer.md" ]
-  [ -f "$TEST_PROJECT/.opencode/agents/ocat-reviewer.md" ]
-  [ -f "$TEST_PROJECT/.opencode/agents/ocat-explorer.md" ]
-  [ -f "$TEST_PROJECT/.opencode/skills/ocat/SKILL.md" ]
+  [ -f "$TEST_PROJECT/.opencode/.agents/ocat-orchestrator.md" ]
+  [ -f "$TEST_PROJECT/.opencode/.agents/ocat-architect.md" ]
+  [ -f "$TEST_PROJECT/.opencode/.agents/ocat-developer.md" ]
+  [ -f "$TEST_PROJECT/.opencode/.agents/ocat-reviewer.md" ]
+  [ -f "$TEST_PROJECT/.opencode/.agents/ocat-explorer.md" ]
+  [ -f "$TEST_PROJECT/.opencode/.skills/ocat/SKILL.md" ]
 }
 
 @test "project: scaffolds opencode.json when absent" {
@@ -126,26 +126,26 @@ run_project() {
   [ "$status" -ne 0 ]
 }
 
-@test "project: adds boards/ to .gitignore" {
+@test "project: adds .boards/ to .gitignore" {
   run run_project --project "$TEST_PROJECT"
   [ "$status" -eq 0 ]
   [ -f "$TEST_PROJECT/.gitignore" ]
-  grep -qxF 'boards/' "$TEST_PROJECT/.gitignore"
+  grep -qxF '.boards/' "$TEST_PROJECT/.gitignore"
 }
 
-@test "project: appends boards/ to existing .gitignore" {
+@test "project: appends .boards/ to existing .gitignore" {
   echo 'node_modules/' > "$TEST_PROJECT/.gitignore"
   run run_project --project "$TEST_PROJECT"
   [ "$status" -eq 0 ]
   grep -qxF 'node_modules/' "$TEST_PROJECT/.gitignore"
-  grep -qxF 'boards/' "$TEST_PROJECT/.gitignore"
+  grep -qxF '.boards/' "$TEST_PROJECT/.gitignore"
 }
 
-@test "project: does not duplicate boards/ in .gitignore" {
-  echo 'boards/' > "$TEST_PROJECT/.gitignore"
+@test "project: does not duplicate .boards/ in .gitignore" {
+  echo '.boards/' > "$TEST_PROJECT/.gitignore"
   run run_project --project "$TEST_PROJECT"
   [ "$status" -eq 0 ]
-  count=$(grep -cxF 'boards/' "$TEST_PROJECT/.gitignore")
+  count=$(grep -cxF '.boards/' "$TEST_PROJECT/.gitignore")
   [ "$count" -eq 1 ]
 }
 

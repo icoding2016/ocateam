@@ -297,6 +297,68 @@ check_powershell_syntax() {
   fi
 }
 
+check_execution_log_docs() {
+  echo ""
+  echo "── Execution log documentation ──"
+  if [ -f "$PROJECT_DIR/doc/execution-log-format.md" ]; then
+    pass "Execution log format documented"
+  else
+    fail "Execution log format documentation missing"
+  fi
+
+  if [ -f "$PROJECT_DIR/scripts/view-log.sh" ]; then
+    pass "Log viewer script exists"
+  else
+    fail "Log viewer script missing"
+  fi
+
+  if [ -x "$PROJECT_DIR/scripts/view-log.sh" ]; then
+    pass "Log viewer script is executable"
+  else
+    fail "Log viewer script is not executable"
+  fi
+}
+
+check_confirmation_gate() {
+  echo ""
+  echo "── Confirmation gate ──"
+  # Check that SKILL.md contains the confirmation gate section
+  if grep -q "Hard Confirmation Gate" "$PROJECT_DIR/skills/ocat/SKILL.md"; then
+    pass "Confirmation gate documented in SKILL.md"
+  else
+    fail "Confirmation gate missing from SKILL.md"
+  fi
+
+  # Check that orchestrator mentions the gate
+  if grep -q "Confirm After Phase 0" "$PROJECT_DIR/agents/ocat-orchestrator.md"; then
+    pass "Orchestrator prompt references confirmation gate"
+  else
+    fail "Orchestrator prompt missing confirmation gate reference"
+  fi
+}
+
+check_interaction_strategy() {
+  echo ""
+  echo "── Interaction strategy ──"
+  if grep -q "Interaction Strategy" "$PROJECT_DIR/skills/ocat/SKILL.md"; then
+    pass "Interaction strategy documented in SKILL.md"
+  else
+    fail "Interaction strategy missing from SKILL.md"
+  fi
+
+  if grep -q "Plan Mode" "$PROJECT_DIR/skills/ocat/SKILL.md"; then
+    pass "Plan Mode defined"
+  else
+    fail "Plan Mode not defined"
+  fi
+
+  if grep -q "Smart Mode" "$PROJECT_DIR/skills/ocat/SKILL.md"; then
+    pass "Smart Mode defined"
+  else
+    fail "Smart Mode not defined"
+  fi
+}
+
 # ── Main ──────────────────────────────────────────────────
 
 main() {
@@ -316,6 +378,9 @@ main() {
   check_agent_roles_table
   check_snippet_keys
   check_no_hardcoded_paths
+  check_confirmation_gate
+  check_interaction_strategy
+  check_execution_log_docs
 
   echo ""
   echo "========================================"
