@@ -176,12 +176,12 @@ Describe "install.ps1" {
             $result = Invoke-InstallerProject -Arguments "-Project `"$TestProject`""
             $result.ExitCode | Should -Be 0
 
-            Join-Path $TestProject ".opencode\agents\ocat-orchestrator.md" | Should -Exist
-            Join-Path $TestProject ".opencode\agents\ocat-architect.md"    | Should -Exist
-            Join-Path $TestProject ".opencode\agents\ocat-developer.md"    | Should -Exist
-            Join-Path $TestProject ".opencode\agents\ocat-reviewer.md"     | Should -Exist
-            Join-Path $TestProject ".opencode\agents\ocat-explorer.md"     | Should -Exist
-            Join-Path $TestProject ".opencode\skills\ocat\SKILL.md"        | Should -Exist
+            Join-Path $TestProject ".opencode\.agents\ocat-orchestrator.md" | Should -Exist
+            Join-Path $TestProject ".opencode\.agents\ocat-architect.md"    | Should -Exist
+            Join-Path $TestProject ".opencode\.agents\ocat-developer.md"    | Should -Exist
+            Join-Path $TestProject ".opencode\.agents\ocat-reviewer.md"     | Should -Exist
+            Join-Path $TestProject ".opencode\.agents\ocat-explorer.md"     | Should -Exist
+            Join-Path $TestProject ".opencode\.skills\ocat\SKILL.md"        | Should -Exist
         }
 
         It "scaffolds opencode.json when absent" {
@@ -215,17 +215,17 @@ Describe "install.ps1" {
             $result.ExitCode | Should -Not -Be 0
         }
 
-        It "adds boards/ to .gitignore" {
+        It "adds .boards/ to .gitignore" {
             $result = Invoke-InstallerProject -Arguments "-Project `"$TestProject`""
             $result.ExitCode | Should -Be 0
 
             $gitignorePath = Join-Path $TestProject ".gitignore"
             $gitignorePath | Should -Exist
             $content = Get-Content $gitignorePath -Raw
-            $content | Should -Match '(?m)^boards/$'
+            $content | Should -Match '(?m)^\.boards/$'
         }
 
-        It "appends boards/ to existing .gitignore" {
+        It "appends .boards/ to existing .gitignore" {
             $gitignorePath = Join-Path $TestProject ".gitignore"
             "node_modules/" | Set-Content $gitignorePath
 
@@ -234,18 +234,18 @@ Describe "install.ps1" {
 
             $content = Get-Content $gitignorePath -Raw
             $content | Should -Match 'node_modules/'
-            $content | Should -Match '(?m)^boards/$'
+            $content | Should -Match '(?m)^\.boards/$'
         }
 
-        It "does not duplicate boards/ in .gitignore" {
+        It "does not duplicate .boards/ in .gitignore" {
             $gitignorePath = Join-Path $TestProject ".gitignore"
-            "boards/" | Set-Content $gitignorePath
+            ".boards/" | Set-Content $gitignorePath
 
             $result = Invoke-InstallerProject -Arguments "-Project `"$TestProject`""
             $result.ExitCode | Should -Be 0
 
             $content = Get-Content $gitignorePath
-            $matches = $content | Where-Object { $_ -eq 'boards/' }
+            $matches = $content | Where-Object { $_ -eq '.boards/' }
             $matches.Count | Should -Be 1
         }
     }

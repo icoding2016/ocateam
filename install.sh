@@ -72,9 +72,9 @@ install_global() {
 install_project() {
   local project_path="${1%/}"
   local agents_src="$OCATeam_DIR/agents"
-  local agents_dest="$project_path/.opencode/agents"
+  local agents_dest="$project_path/.opencode/.agents"
   local skills_src="$OCATeam_DIR/skills/ocat"
-  local skills_dest="$project_path/.opencode/skills/ocat"
+  local skills_dest="$project_path/.opencode/.skills/ocat"
 
   if [ ! -d "$project_path" ]; then
     err "Project directory not found: $project_path"
@@ -102,24 +102,24 @@ install_project() {
   elif [ -f "$snippet" ] && [ -f "$project_path/opencode.json" ]; then
     warn "opencode.json already exists — skipped scaffold"
   fi
-  # Scaffold ocat.json (always warn if exists, never overwrite)
-  if [ -f "$ocat_config" ] && [ ! -f "$project_path/ocat.json" ]; then
-    cp "$ocat_config" "$project_path/ocat.json"
-    log "Scaffolded ocat.json with active agents config"
-  elif [ -f "$ocat_config" ] && [ -f "$project_path/ocat.json" ]; then
-    warn "ocat.json already exists — skipped scaffold"
+  # Scaffold .ocat.json (always warn if exists, never overwrite)
+  if [ -f "$ocat_config" ] && [ ! -f "$project_path/.ocat.json" ]; then
+    cp "$ocat_config" "$project_path/.ocat.json"
+    log "Scaffolded .ocat.json with active agents config"
+  elif [ -f "$ocat_config" ] && [ -f "$project_path/.ocat.json" ]; then
+    warn ".ocat.json already exists — skipped scaffold"
   fi
 
-  # Ensure boards/ is gitignored (runtime state, never committed)
+  # Ensure .boards/ is gitignored (runtime state, never committed)
   local gitignore="$project_path/.gitignore"
   if [ -f "$gitignore" ]; then
-    if ! grep -qxF 'boards/' "$gitignore" 2>/dev/null; then
-      echo 'boards/' >> "$gitignore"
-      log "Added boards/ to .gitignore"
+    if ! grep -qxF '.boards/' "$gitignore" 2>/dev/null; then
+      echo '.boards/' >> "$gitignore"
+      log "Added .boards/ to .gitignore"
     fi
   else
-    echo 'boards/' > "$gitignore"
-    log "Created .gitignore with boards/"
+    echo '.boards/' > "$gitignore"
+    log "Created .gitignore with .boards/"
   fi
 
   echo ""
@@ -129,7 +129,7 @@ install_project() {
   echo "  Agents:  $agents_dest/"
   echo "  Skill:   $skills_dest/"
   echo ""
-  echo "  To customize: edit $project_path/.opencode/agents/*.md"
+  echo "  To customize: edit $project_path/.opencode/.agents/*.md"
 }
 
 uninstall_global() {
@@ -145,8 +145,8 @@ uninstall_global() {
 
 uninstall_project() {
   local project_path="${1%/}"
-  local agents_dest="$project_path/.opencode/agents"
-  local skills_dest="$project_path/.opencode/skills/ocat"
+  local agents_dest="$project_path/.opencode/.agents"
+  local skills_dest="$project_path/.opencode/.skills/ocat"
 
   log "Removing ocat agents from $agents_dest"
   rm -f "$agents_dest"/ocat-*.md

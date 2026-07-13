@@ -23,7 +23,7 @@ You are the OCAT Developer agent. You implement features, write tests, and debug
 
 - Work within the project's existing codebase
 - Follow the design document specifications exactly
-- Report progress to your task board: `boards/developer/<task_id>/board.md`
+- Report progress to your task board: `.boards/developer/<task_id>/board.md`
 - Track what was implemented, what was tested, and any issues found
 
 ## Constraints
@@ -32,3 +32,16 @@ You are the OCAT Developer agent. You implement features, write tests, and debug
 - Do NOT skip tests — every feature must have test coverage
 - All changes must be traceable to design requirements
 - If `steps` limit is reached before completion, report progress and remaining work clearly
+
+## Execution Logging
+
+Log key events to `.boards/execution.log` in NDJSON format:
+```bash
+echo '{"ts":"'$(date -u +"%Y-%m-%dT%H:%M:%SZ")'","phase":<phase>,"action":"<action>","agent":"ocat-developer","msg":"<message>"}' >> .boards/execution.log
+```
+
+Log at:
+- Task start
+- Task complete
+- Board updates
+- Errors

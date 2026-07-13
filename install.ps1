@@ -112,9 +112,9 @@ function Install-Project {
     }
 
     $agentsSrc  = "$OCATeamDir/agents"
-    $agentsDest = "$ProjectPath/.opencode/agents"
+    $agentsDest = "$ProjectPath/.opencode/.agents"
     $skillsSrc  = "$OCATeamDir/skills/ocat"
-    $skillsDest = "$ProjectPath/.opencode/skills/ocat"
+    $skillsDest = "$ProjectPath/.opencode/.skills/ocat"
 
     Validate-Sources $agentsSrc $skillsSrc
 
@@ -142,26 +142,26 @@ function Install-Project {
         Write-Warn "opencode.json already exists — skipped scaffold"
     }
 
-    if ((Test-Path $ocatConfig) -and (-not (Test-Path "$ProjectPath/ocat.json"))) {
-        Copy-Item $ocatConfig -Destination "$ProjectPath/ocat.json"
-        Write-Log "Scaffolded ocat.json with active agents config"
+    if ((Test-Path $ocatConfig) -and (-not (Test-Path "$ProjectPath/.ocat.json"))) {
+        Copy-Item $ocatConfig -Destination "$ProjectPath/.ocat.json"
+        Write-Log "Scaffolded .ocat.json with active agents config"
     }
-    elseif ((Test-Path $ocatConfig) -and (Test-Path "$ProjectPath/ocat.json")) {
-        Write-Warn "ocat.json already exists — skipped scaffold"
+    elseif ((Test-Path $ocatConfig) -and (Test-Path "$ProjectPath/.ocat.json")) {
+        Write-Warn ".ocat.json already exists — skipped scaffold"
     }
 
-    # Ensure boards/ is gitignored (runtime state, never committed)
+    # Ensure .boards/ is gitignored (runtime state, never committed)
     $gitignorePath = "$ProjectPath/.gitignore"
     if (Test-Path $gitignorePath) {
         $gitignoreContent = Get-Content $gitignorePath -Raw -ErrorAction SilentlyContinue
-        if (-not ($gitignoreContent -match '(?m)^boards/$')) {
-            Add-Content -Path $gitignorePath -Value "`nboards/" -NoNewline:$false
-            Write-Log "Added boards/ to .gitignore"
+        if (-not ($gitignoreContent -match '(?m)^\.boards/$')) {
+            Add-Content -Path $gitignorePath -Value "`n.boards/" -NoNewline:$false
+            Write-Log "Added .boards/ to .gitignore"
         }
     }
     else {
-        Set-Content -Path $gitignorePath -Value "boards/"
-        Write-Log "Created .gitignore with boards/"
+        Set-Content -Path $gitignorePath -Value ".boards/"
+        Write-Log "Created .gitignore with .boards/"
     }
 
     Write-Host ""
@@ -171,7 +171,7 @@ function Install-Project {
     Write-Host "  Agents:  $agentsDest/"
     Write-Host "  Skill:   $skillsDest/"
     Write-Host ""
-    Write-Host "  To customize: edit $ProjectPath/.opencode/agents/*.md"
+    Write-Host "  To customize: edit $ProjectPath/.opencode/.agents/*.md"
 }
 
 # ── Uninstall from global ──────────────────────────────────
@@ -191,8 +191,8 @@ function Uninstall-Project {
     param([string]$ProjectPath)
 
     $ProjectPath = $ProjectPath.TrimEnd(@('/', '\'))
-    $agentsDest  = "$ProjectPath/.opencode/agents"
-    $skillsDest  = "$ProjectPath/.opencode/skills/ocat"
+    $agentsDest  = "$ProjectPath/.opencode/.agents"
+    $skillsDest  = "$ProjectPath/.opencode/.skills/ocat"
 
     Write-Log "Removing ocat agents from $agentsDest"
     Remove-Item -Force -ErrorAction SilentlyContinue "$agentsDest/ocat-*.md"

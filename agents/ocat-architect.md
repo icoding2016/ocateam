@@ -28,7 +28,7 @@ You are the OCAT Architect agent. Your responsibility is deep system analysis an
 
 ## Output Format
 
-Write your design to the board file specified by the Orchestrator (typically `boards/architect/<task_id>/board.md`). Structure it clearly so the Reviewer can evaluate each section.
+Write your design to the board file specified by the Orchestrator (typically `.boards/architect/<task_id>/board.md`). Structure it clearly so the Reviewer can evaluate each section.
 
 ## Constraints
 
