@@ -578,35 +578,30 @@ Add four explicit review dimensions to the Reviewer agent and mandate them in ev
 **Problem:** OCATeam agents need appropriate thinking/reasoning depth for their roles (Architect/Developer/Reviewer need deep reasoning; Explorer needs lighter, faster responses). Without explicit configuration, all agents use the model's default thinking behavior, which may not be optimal for each role.
 
 **Decision:**
-Add a `thinking` field to each agent's frontmatter, documenting the intended thinking level. This field is currently **declarative** — it documents intent but does not drive model behavior across all providers, as OpenCode lacks a unified cross-provider thinking level mechanism.
+Configure thinking/reasoning for each agent based on its default model's behavior:
 
-| Agent | Thinking Level | Rationale |
-|-------|---------------|-----------|
-| ocat-orchestrator | high | Complex multi-agent coordination and quality gating |
-| ocat-architect | high | Deep system analysis and architectural decisions |
-| ocat-developer | high | Complex implementation, debugging, and test design |
-| ocat-reviewer | high | Rigorous, skeptical review requiring deep analysis |
-| ocat-explorer | medium | Quick, focused research — speed over depth |
+| Agent | Default Model | Thinking Default | Action |
+|-------|--------------|-----------------|--------|
+| ocat-orchestrator | `opencode-go/qwen3.7-plus` | varies by provider | Explicit `options.thinking` (budgetTokens: 16000) |
+| ocat-architect | `opencode-go/glm-5.2` | max (enabled by default) | No extra config needed |
+| ocat-developer | `opencode-go/deepseek-v4-pro` | high (enabled by default) | No extra config needed |
+| ocat-reviewer | `opencode-go/deepseek-v4-pro` | high (enabled by default) | No extra config needed |
+| ocat-explorer | `opencode-go/deepseek-v4-flash` | high (enabled by default) | No extra config needed |
 
-**Evolution Path:**
-
-1. **Short term (current):** `thinking` field in frontmatter is routed to `options.thinking` by OpenCode. This is a passive metadata field — no provider integration. The field declares intent for human readers and for potential future OpenCode support.
-
-2. **Mid term:** Track [OpenCode Issue #33013](https://github.com/opencode-ai/opencode/issues/33013) for unified effort ladder design. If the issue progresses, align the `thinking` field values (`high`, `medium`) with the official effort ladder levels.
-
-3. **Long term:** When OpenCode adopts a standardized effort ladder across providers, the `thinking` field can become functional — OpenCode would read `options.thinking` (or a native `thinking` field) and translate it to the appropriate provider-specific parameters (reasoning budget, token allocation, etc.).
+In addition, all agents declare their intended thinking level via the `thinking` frontmatter field (`high` or `medium`). This is a documentation field routed to `options.thinking` by OpenCode, serving as forward-compatible metadata for a future unified effort ladder ([Issue #33013](https://github.com/opencode-ai/opencode/issues/33013)).
 
 **Implementation:**
 1. Add `thinking: high` or `thinking: medium` to each agent's YAML frontmatter
-2. Add a "Model Configuration" section to each agent's prompt explaining the intent
-3. Update `skills/ocat/SKILL.md` Agent Roles Summary table to include the Thinking column
-4. Document current limitations and future path in design doc and README
+2. For orchestrator (`qwen3.7-plus`), add explicit `options.thinking: { type: enabled, budgetTokens: 16000 }`
+3. Add a "Model Configuration" section to each agent's prompt explaining the thinking setup
+4. Update `skills/ocat/SKILL.md` Agent Roles Summary table to include the Thinking column
+5. Document default model thinking behaviors and the rationale for explicit vs. implicit config
 
 **Rationale:**
-- Different OCATeam roles need different thinking depths — a single default doesn't fit all
-- The frontmatter field declares intent without breaking existing OpenCode config (unknown fields are silently routed to `options`)
-- The field is forward-compatible: if/when OpenCode adds native effort ladder, it can read `thinking` directly
-- Variations in variant names across providers (DeepSeek, GLM, Qwen) make a single `variant` value impractical — a unified effort ladder is the right long-term solution
+- DeepSeek V4 Pro/Flash enables thinking by default with `reasoning_effort: high` — no extra config needed
+- GLM-5.2 defaults to `reasoning_effort: max` — no extra config needed
+- Qwen3.7-plus does not guarantee thinking is enabled across all providers — explicit config ensures consistent behavior
+- The `thinking` frontmatter field documents intent and is forward-compatible with OpenCode's planned effort ladder
 
 ---
 
