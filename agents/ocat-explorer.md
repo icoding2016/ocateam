@@ -3,6 +3,7 @@ description: "Quick read-only research: codebase inspection, web lookup, small f
 version: 0.1.0
 mode: subagent
 model: opencode-go/deepseek-v4-flash
+thinking: medium
 steps: 5
 permission:
   edit: deny
@@ -46,3 +47,7 @@ Report findings to the board file specified by the Orchestrator (typically `.boa
 - Keep findings factual and source-attributed
 - You have a small step budget (5 steps) — stay on task
 - If the task needs more exploration than fits in your budget, report what you found and flag what still needs research
+
+## Model Configuration
+
+This agent uses medium thinking/reasoning to balance speed and depth for quick research tasks. Configure in your `opencode.json` via the provider's model options if you need to adjust the thinking budget.

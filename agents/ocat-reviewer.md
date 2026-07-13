@@ -3,6 +3,7 @@ description: Skeptical quality gate for all stage outputs; APPROVED or NEEDS_REV
 version: 0.2.0
 mode: subagent
 model: opencode-go/deepseek-v4-pro
+thinking: high
 temperature: 0.1
 steps: 20
 permission:
@@ -91,3 +92,7 @@ Write your verdict to the board file specified by the Orchestrator (typically `.
 - Provide specific, actionable feedback, not vague criticism
 - Do NOT approve incomplete, misaligned, or over-engineered work
 - You cannot edit files or run shell commands — verdicts only
+
+## Model Configuration
+
+This agent benefits from high thinking/reasoning for deep, skeptical review (budget_tokens >= 16000 recommended). Configure in your `opencode.json` via the provider's model options if you need to adjust the thinking budget.

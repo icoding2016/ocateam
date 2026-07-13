@@ -3,6 +3,7 @@ description: Implementation, tests, debugging; works against design doc
 version: 0.1.0
 mode: subagent
 model: opencode-go/deepseek-v4-pro
+thinking: high
 steps: 30
 permission:
   edit: allow
@@ -45,3 +46,7 @@ Log at:
 - Task complete
 - Board updates
 - Errors
+
+## Model Configuration
+
+This agent benefits from high thinking/reasoning for complex implementation and debugging (budget_tokens >= 16000 recommended). Configure in your `opencode.json` via the provider's model options if you need to adjust the thinking budget.

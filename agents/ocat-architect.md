@@ -3,6 +3,7 @@ description: System design and analysis; produces design docs; no code
 version: 0.1.0
 mode: subagent
 model: opencode-go/glm-5.2
+thinking: high
 temperature: 0.2
 steps: 25
 permission:
@@ -37,3 +38,7 @@ Write your design to the board file specified by the Orchestrator (typically `.b
 - Focus on "what" and "why", not "how to code it"
 - Design must be reviewable by the Reviewer agent
 - If you encounter ambiguity, flag it for the Orchestrator — do not guess
+
+## Model Configuration
+
+This agent benefits from high thinking/reasoning for deep architectural analysis (budget_tokens >= 16000 recommended). Configure in your `opencode.json` via the provider's model options if you need to adjust the thinking budget.
