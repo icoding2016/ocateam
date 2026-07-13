@@ -1,5 +1,6 @@
 # Project board files (generated at runtime, not committed)
 .boards/
+.agents/
 
 # Editor / OS
 .DS_Store

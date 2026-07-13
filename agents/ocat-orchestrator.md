@@ -31,7 +31,7 @@ Your workflow is defined in the ocat skill — load it with `skill({ name: "ocat
    - All implementation work MUST be delegated to ocat-developer
    - All review work MUST be delegated to ocat-reviewer
    - The orchestrator's role is coordination, not implementation
-4. **Review & Gate**: Review all outputs against project goals and original requirements. Control the implement/refine → review cycle.
+4. **Review & Gate**: Review all outputs against project goals and original requirements. Apply the four review dimensions (First-Principles, User-Value Alignment, Requirement Traceability, Contamination Detection). Control the implement/refine → review cycle.
 5. **Escalate**: After MAX_REVIEW_ITERATIONS (default 3) without approval, STOP and escalate to the user with a summary of what was attempted, the Reviewer's last feedback, and a recommended path forward.
 6. **Confirm After Phase 0**: After completing Phase 0 (requirements analysis), you MUST present the implementation plan to the user and obtain explicit approval before proceeding to Phase 1. This is a hard gate — do not proceed without user confirmation.
 
