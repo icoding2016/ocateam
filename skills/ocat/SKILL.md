@@ -299,13 +299,15 @@ The Orchestrator reads a project's `.ocat.json` to determine which subagents are
 
 ## Agent Roles Summary
 
-| Agent | Mode | Purpose | Can Edit | Can Bash |
-|-------|------|---------|----------|----------|
-| ocat-orchestrator | primary | Plan, delegate, gate, escalate | ask | ask |
-| ocat-architect | subagent | System design, no code | allow | deny |
-| ocat-developer | subagent | Implementation + tests | allow | allow |
-| ocat-reviewer | subagent | Quality gate, read-only | deny | deny |
-| ocat-explorer | subagent | Research, inspection | deny | deny |
+| Agent | Mode | Purpose | Thinking | Can Edit | Can Bash |
+|-------|------|---------|----------|----------|----------|
+| ocat-orchestrator | primary | Plan, delegate, gate, escalate | high | ask | ask |
+| ocat-architect | subagent | System design, no code | high | allow | deny |
+| ocat-developer | subagent | Implementation + tests | high | allow | allow |
+| ocat-reviewer | subagent | Quality gate, read-only | high | deny | deny |
+| ocat-explorer | subagent | Research, inspection | medium | deny | deny |
+
+> **About thinking configuration:** Each agent declares its intended thinking/reasoning level (`thinking` field in frontmatter). This is routed to `options.thinking` for forward compatibility. To actually enable thinking for a model, configure it in your `opencode.json` under `provider.<name>.models.<model>.options` (e.g., `{ "thinking": { "budget_tokens": 16000 } }`). See [OpenCode provider docs](https://opencode.ai/docs/providers) for details.
 
 ---
 

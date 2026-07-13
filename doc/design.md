@@ -573,6 +573,33 @@ Add four explicit review dimensions to the Reviewer agent and mandate them in ev
 - Update `agents/ocat-orchestrator.md` Review & Gate responsibility
 - Reviewers must report pass/fail for each dimension in their verdict
 
+### 11.9 Agent-Level Thinking Configuration
+
+**Problem:** OCATeam agents need appropriate thinking/reasoning depth for their roles (Architect/Developer/Reviewer need deep reasoning; Explorer needs lighter, faster responses). Without explicit configuration, all agents use the model's default thinking behavior, which may not be optimal for each role.
+
+**Decision:**
+Add a `thinking` field to each agent's frontmatter, documenting the intended thinking level:
+
+| Agent | Thinking Level | Rationale |
+|-------|---------------|-----------|
+| ocat-orchestrator | high | Complex multi-agent coordination and quality gating |
+| ocat-architect | high | Deep system analysis and architectural decisions |
+| ocat-developer | high | Complex implementation, debugging, and test design |
+| ocat-reviewer | high | Rigorous, skeptical review requiring deep analysis |
+| ocat-explorer | medium | Quick, focused research — speed over depth |
+
+**Implementation:**
+1. Add `thinking: high` or `thinking: medium` to each agent's YAML frontmatter
+2. Add a "Model Configuration" section to each agent's prompt explaining the thinking recommendation
+3. Update `skills/ocat/SKILL.md` Agent Roles Summary table to include the Thinking column
+4. Document the trade-off: `thinking` field is routed to `options.thinking` for forward compatibility; users who want to actually enable thinking must configure it in their `opencode.json` under `provider.<name>.models.<model>.options`
+
+**Rationale:**
+- Different OCATeam roles need different thinking depths — a single default doesn't fit all
+- The frontmatter field declares intent without breaking existing OpenCode config (unknown fields are silently routed to `options`)
+- Documenting in the prompt text means the agent itself can explain its thinking requirements when asked
+- Users who want to actually enable thinking can follow the docs to configure their provider model options
+
 ---
 
 ## 12. Next Steps

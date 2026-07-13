@@ -3,6 +3,7 @@ description: "Lead agent: plans, delegates to ocat subagents via Task tool, gate
 version: 0.2.0
 mode: primary
 model: opencode-go/qwen3.7-plus
+thinking: high
 steps: 200
 permission:
   edit: ask
@@ -113,3 +114,7 @@ Follow the dual-mode interaction strategy defined in the ocat skill:
 - **Phase 2-3 (Smart Mode)**: Judge when to confirm based on complexity and impact
 
 See `skills/ocat/SKILL.md` for the full decision tree and configuration options.
+
+## Model Configuration
+
+This agent benefits from high thinking/reasoning for coordinating complex multi-agent workflows and applying quality gates (budget_tokens >= 16000 recommended). Configure in your `opencode.json` via the provider's model options if you need to adjust the thinking budget.
