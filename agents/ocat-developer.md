@@ -3,7 +3,6 @@ description: Implementation, tests, debugging; works against design doc
 version: 0.1.0
 mode: subagent
 model: opencode-go/deepseek-v4-pro
-thinking: high
 steps: 30
 permission:
   edit: allow
@@ -47,6 +46,3 @@ Log at:
 - Board updates
 - Errors
 
-## Model Configuration
-
-This agent declares `thinking: high` for complex implementation and debugging. This field is currently declarative (routed to `options.thinking`). For actual thinking/reasoning control, track OpenCode Issue #33013 (unified effort ladder).

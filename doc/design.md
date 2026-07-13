@@ -573,35 +573,34 @@ Add four explicit review dimensions to the Reviewer agent and mandate them in ev
 - Update `agents/ocat-orchestrator.md` Review & Gate responsibility
 - Reviewers must report pass/fail for each dimension in their verdict
 
-### 11.9 Agent-Level Thinking Configuration
+### 11.9 Agent-Level Thinking Configuration (Revised)
 
-**Problem:** OCATeam agents need appropriate thinking/reasoning depth for their roles (Architect/Developer/Reviewer need deep reasoning; Explorer needs lighter, faster responses). Without explicit configuration, all agents use the model's default thinking behavior, which may not be optimal for each role.
+**Problem:** OCATeam agents need appropriate thinking/reasoning depth for their roles (Architect/Developer/Reviewer need deep reasoning; Explorer needs lighter, faster responses). Without explicit configuration, all agents use the model's default thinking behavior, which may not be optimized for each role.
 
-**Decision:**
-Configure thinking/reasoning for each agent based on its default model's behavior:
+**Initial Attempt (v0.2.0, DEPRECATED):**
+We initially added `thinking: high` / `thinking: medium` to each agent's YAML frontmatter, believing OpenCode would interpret it as declarative metadata. However, **OpenCode passes all unrecognized frontmatter fields directly as model options** to the upstream provider:
 
-| Agent | Default Model | Thinking Default | Action |
-|-------|--------------|-----------------|--------|
-| ocat-orchestrator | `opencode-go/qwen3.7-plus` | varies by provider | Explicit `options.thinking` (budgetTokens: 16000) |
-| ocat-architect | `opencode-go/glm-5.2` | max (enabled by default) | No extra config needed |
-| ocat-developer | `opencode-go/deepseek-v4-pro` | high (enabled by default) | No extra config needed |
-| ocat-reviewer | `opencode-go/deepseek-v4-pro` | high (enabled by default) | No extra config needed |
-| ocat-explorer | `opencode-go/deepseek-v4-flash` | high (enabled by default) | No extra config needed |
+- For `@ai-sdk/openai-compatible`: `thinking: "high"` is not a valid parameter → API rejects the request
+- For `@ai-sdk/anthropic`: `thinking` must be `{ type: enabled, budgetTokens: number }` — a string value causes API rejection
 
-In addition, all agents declare their intended thinking level via the `thinking` frontmatter field (`high` or `medium`). This is a documentation field routed to `options.thinking` by OpenCode, serving as forward-compatible metadata for a future unified effort ladder ([Issue #33013](https://github.com/opencode-ai/opencode/issues/33013)).
+**Root Cause:**
+The `thinking` frontmatter field is **not** an OpenCode-internal configuration key. Any unrecognized field in an agent's YAML frontmatter is forwarded verbatim as a model option to the AI SDK provider. This caused "Upstream request failed" errors across all agents.
 
-**Implementation:**
-1. Add `thinking: high` or `thinking: medium` to each agent's YAML frontmatter
-2. For orchestrator (`qwen3.7-plus`), add explicit `options.thinking: { type: enabled, budgetTokens: 16000 }`
-3. Add a "Model Configuration" section to each agent's prompt explaining the thinking setup
-4. Update `skills/ocat/SKILL.md` Agent Roles Summary table to include the Thinking column
-5. Document default model thinking behaviors and the rationale for explicit vs. implicit config
+**Resolution (v0.2.0, applied):**
+1. **Removed `thinking: high/medium`** from all 5 agent frontmatter files
+2. **Removed `options.thinking`** from orchestrator (same root cause — passed as model option)
+3. **Removed "Model Configuration" sections** that documented the deprecated field
+4. Relied on each model's **default thinking behavior**:
+   - `opencode-go/deepseek-v4-pro`: thinking/reasoning enabled by default with `reasoning_effort: high`
+   - `opencode-go/deepseek-v4-flash`: thinking enabled by default with `reasoning_effort: high`
+   - `opencode-go/glm-5.2`: defaults to `reasoning_effort: max`
+   - `opencode-go/qwen3.7-plus`: thinking behavior varies by provider SDK
 
-**Rationale:**
-- DeepSeek V4 Pro/Flash enables thinking by default with `reasoning_effort: high` — no extra config needed
-- GLM-5.2 defaults to `reasoning_effort: max` — no extra config needed
-- Qwen3.7-plus does not guarantee thinking is enabled across all providers — explicit config ensures consistent behavior
-- The `thinking` frontmatter field documents intent and is forward-compatible with OpenCode's planned effort ladder
+**Lesson Learned:**
+Agent YAML frontmatter fields are **not** generic metadata — they are model options passed through to the provider. Only OpenCode's recognized keys (e.g., `model`, `temperature`, `steps`, `mode`) are safe to use. Custom documentation fields in frontmatter will cause provider errors unless the provider's API explicitly accepts them.
+
+**Note on `options.thinking`:**
+The `options.thinking` field in agent frontmatter is OpenCode's mechanism for explicitly enabling thinking on models that require the Anthropic-format `{type: enabled, budgetTokens: N}` parameter. This is distinct from a simple `thinking:` string field and should only be used when the target model's provider SDK requires it. For OCATeam's current models (DeepSeek, GLM), thinking is enabled by default and no explicit config is needed.
 
 ---
 
