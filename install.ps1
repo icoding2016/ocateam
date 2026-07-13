@@ -112,9 +112,9 @@ function Install-Project {
     }
 
     $agentsSrc  = "$OCATeamDir/agents"
-    $agentsDest = "$ProjectPath/.opencode/.agents"
+    $agentsDest = "$ProjectPath/.opencode/agents"
     $skillsSrc  = "$OCATeamDir/skills/ocat"
-    $skillsDest = "$ProjectPath/.opencode/.skills/ocat"
+    $skillsDest = "$ProjectPath/.opencode/skills/ocat"
 
     Validate-Sources $agentsSrc $skillsSrc
 
@@ -171,7 +171,7 @@ function Install-Project {
     Write-Host "  Agents:  $agentsDest/"
     Write-Host "  Skill:   $skillsDest/"
     Write-Host ""
-    Write-Host "  To customize: edit $ProjectPath/.opencode/.agents/*.md"
+    Write-Host "  To customize: edit $ProjectPath/.opencode/agents/*.md"
 }
 
 # ── Uninstall from global ──────────────────────────────────
@@ -191,8 +191,8 @@ function Uninstall-Project {
     param([string]$ProjectPath)
 
     $ProjectPath = $ProjectPath.TrimEnd(@('/', '\'))
-    $agentsDest  = "$ProjectPath/.opencode/.agents"
-    $skillsDest  = "$ProjectPath/.opencode/.skills/ocat"
+    $agentsDest  = "$ProjectPath/.opencode/agents"
+    $skillsDest  = "$ProjectPath/.opencode/skills/ocat"
 
     Write-Log "Removing ocat agents from $agentsDest"
     Remove-Item -Force -ErrorAction SilentlyContinue "$agentsDest/ocat-*.md"

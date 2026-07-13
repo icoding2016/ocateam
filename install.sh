@@ -72,9 +72,9 @@ install_global() {
 install_project() {
   local project_path="${1%/}"
   local agents_src="$OCATeam_DIR/agents"
-  local agents_dest="$project_path/.opencode/.agents"
+  local agents_dest="$project_path/.opencode/agents"
   local skills_src="$OCATeam_DIR/skills/ocat"
-  local skills_dest="$project_path/.opencode/.skills/ocat"
+  local skills_dest="$project_path/.opencode/skills/ocat"
 
   if [ ! -d "$project_path" ]; then
     err "Project directory not found: $project_path"
@@ -129,7 +129,7 @@ install_project() {
   echo "  Agents:  $agents_dest/"
   echo "  Skill:   $skills_dest/"
   echo ""
-  echo "  To customize: edit $project_path/.opencode/.agents/*.md"
+  echo "  To customize: edit $project_path/.opencode/agents/*.md"
 }
 
 uninstall_global() {
@@ -145,8 +145,8 @@ uninstall_global() {
 
 uninstall_project() {
   local project_path="${1%/}"
-  local agents_dest="$project_path/.opencode/.agents"
-  local skills_dest="$project_path/.opencode/.skills/ocat"
+  local agents_dest="$project_path/.opencode/agents"
+  local skills_dest="$project_path/.opencode/skills/ocat"
 
   log "Removing ocat agents from $agents_dest"
   rm -f "$agents_dest"/ocat-*.md

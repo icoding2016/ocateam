@@ -10,9 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Changed
 - **BREAKING**: Renamed internal directories to use dot-prefix
   - `boards/` → `.boards/`
-  - `.opencode/agents/` → `.opencode/.agents/`
-  - `.opencode/skills/` → `.opencode/.skills/`
   - `ocat.json` → `.ocat.json`
+- **FIX**: Agent and skill paths under `.opencode/` do NOT get a dot prefix
+  - OpenCode uses glob `{agent,agents}/**/*.md` and `{skill,skills}/**/SKILL.md`
+  - Dot-prefixed `.agents/` and `.skills/` are NOT discoverable
+  - Correct paths: `.opencode/agents/` and `.opencode/skills/`
 - Added migration script: `scripts/migrate-v0.2.sh`
 
 ## [0.1.0] — 2026-07-10

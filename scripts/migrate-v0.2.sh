@@ -7,10 +7,14 @@
 #
 # Changes:
 #   boards/          → .boards/
-#   .opencode/agents/ → .opencode/.agents/
-#   .opencode/skills/ → .opencode/.skills/
-#   ocat.json         → .ocat.json
-#   .gitignore update  boards/ → .boards/
+#   ocat.json        → .ocat.json
+#   .gitignore update boards/ → .boards/
+#
+# NOTE: agents and skills directories remain at .opencode/agents/ and
+# .opencode/skills/ (no dot-prefix). OpenCode's glob pattern only matches
+# {agent,agents} and {skill,skills}, not .agents or .skills.
+# If you previously ran the v0.2.0-dev migration that moved them to
+# .opencode/.agents/ and .opencode/.skills/, this script will REVERSE that.
 
 set -euo pipefail
 
@@ -74,43 +78,45 @@ migrate_boards() {
   fi
 }
 
-# ── Migrate .opencode/agents/ → .opencode/.agents/ ─────
-migrate_agents() {
-  local old_dir="$PROJECT_DIR/.opencode/agents"
-  local new_dir="$PROJECT_DIR/.opencode/.agents"
+# ── Reverse accidental .opencode/.agents/ → .opencode/agents/ ──
+# Previous v0.2.0-dev migration incorrectly renamed agents/ to .agents/,
+# which breaks OpenCode loading. This detects and reverses that.
+reverse_dot_agents() {
+  local wrong_dir="$PROJECT_DIR/.opencode/.agents"
+  local correct_dir="$PROJECT_DIR/.opencode/agents"
 
-  if [ ! -d "$old_dir" ]; then
-    log ".opencode/agents/ not found — skipping agents migration"
+  if [ ! -d "$wrong_dir" ]; then
     return 0
   fi
 
-  if [ ! -d "$new_dir" ]; then
-    mv "$old_dir" "$new_dir"
-    log "Renamed .opencode/agents/ → .opencode/.agents/"
-  elif [ -d "$new_dir" ]; then
-    warn "Both .opencode/agents/ and .opencode/.agents/ exist — please merge manually"
-    warn "  Old:  $old_dir"
-    warn "  New:  $new_dir"
+  if [ ! -d "$correct_dir" ]; then
+    mv "$wrong_dir" "$correct_dir"
+    log "REVERSED: .opencode/.agents/ → .opencode/agents/"
+    warn "  The previous migration incorrectly renamed agents/ to .agents/."
+    warn "  OpenCode requires the directory to be named 'agents/' (no dot-prefix)."
+  else
+    warn "Both .opencode/.agents/ and .opencode/agents/ exist — please merge manually"
+    warn "  The correct path is .opencode/agents/ (OpenCode glob: {agent,agents}/**/*.md)"
   fi
 }
 
-# ── Migrate .opencode/skills/ → .opencode/.skills/ ─────
-migrate_skills() {
-  local old_dir="$PROJECT_DIR/.opencode/skills"
-  local new_dir="$PROJECT_DIR/.opencode/.skills"
+# ── Reverse accidental .opencode/.skills/ → .opencode/skills/ ──
+reverse_dot_skills() {
+  local wrong_dir="$PROJECT_DIR/.opencode/.skills"
+  local correct_dir="$PROJECT_DIR/.opencode/skills"
 
-  if [ ! -d "$old_dir" ]; then
-    log ".opencode/skills/ not found — skipping skills migration"
+  if [ ! -d "$wrong_dir" ]; then
     return 0
   fi
 
-  if [ ! -d "$new_dir" ]; then
-    mv "$old_dir" "$new_dir"
-    log "Renamed .opencode/skills/ → .opencode/.skills/"
-  elif [ -d "$new_dir" ]; then
-    warn "Both .opencode/skills/ and .opencode/.skills/ exist — please merge manually"
-    warn "  Old:  $old_dir"
-    warn "  New:  $new_dir"
+  if [ ! -d "$correct_dir" ]; then
+    mv "$wrong_dir" "$correct_dir"
+    log "REVERSED: .opencode/.skills/ → .opencode/skills/"
+    warn "  The previous migration incorrectly renamed skills/ to .skills/."
+    warn "  OpenCode requires the directory to be named 'skills/' (no dot-prefix)."
+  else
+    warn "Both .opencode/.skills/ and .opencode/skills/ exist — please merge manually"
+    warn "  The correct path is .opencode/skills/ (OpenCode glob: {skill,skills}/**/SKILL.md)"
   fi
 }
 
@@ -163,8 +169,8 @@ main() {
   echo ""
 
   migrate_boards
-  migrate_agents
-  migrate_skills
+  reverse_dot_agents
+  reverse_dot_skills
   migrate_ocat_json
   update_gitignore
 
@@ -173,7 +179,7 @@ main() {
   echo ""
   echo "  Next steps:"
   echo "    1. Verify your project: git status"
-  echo "    2. Run: ./install.sh --project .  (to reinstall with new paths)"
+  echo "    2. Run: ./install.sh --project .  (to reinstall agents/skills)"
   echo "    3. Start your orchestrator: opencode ."
   echo ""
 }

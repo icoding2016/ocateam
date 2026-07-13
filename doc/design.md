@@ -56,7 +56,7 @@ graph TD
 | Goal | Approach |
 |------|----------|
 | **Zero setup per project** | Global install (`~/.config/opencode/`) makes agents available everywhere |
-| **Project-committed customization** | Per-project install (`.opencode/.agents/`) for team-shared, version-controlled config |
+| **Project-committed customization** | Per-project install (`.opencode/agents/`) for team-shared, version-controlled config |
 | **Flexible activation** | `.ocat.json` in project root controls which subagents the orchestrator may delegate to |
 | **Overridable defaults** | Sensible default models in agent definitions; users override in `opencode.json` |
 | **One-command install** | `install.sh` supports both global and per-project modes |
@@ -74,8 +74,8 @@ After install: open any project, `Tab` → `ocat-orchestrator`, describe your pr
 **Per-project mode** — agents + skill committed to a specific project:
 ```bash
 ./install.sh --project ~/code/my-app
-# Copies agents → my-app/.opencode/.agents/ocat-*.md
-# Copies skill  → my-app/.opencode/.skills/ocat/SKILL.md
+# Copies agents → my-app/.opencode/agents/ocat-*.md
+# Copies skill  → my-app/.opencode/skills/ocat/SKILL.md
 # Scaffolds     → my-app/opencode.json (minimal, if absent)
 # Scaffolds     → my-app/.ocat.json (OCATeam active agents config, if absent)
 ```
@@ -340,8 +340,8 @@ ocat/
 
 | Source | Global target | Per-project target |
 |--------|--------------|-------------------|
-| `agents/*.md` | `~/.config/opencode/agents/` | `<project>/.opencode/.agents/` |
-| `skills/ocat/SKILL.md` | `~/.config/opencode/skills/ocat/` | `<project>/.opencode/.skills/ocat/` |
+| `agents/*.md` | `~/.config/opencode/agents/` | `<project>/.opencode/agents/` |
+| `skills/ocat/SKILL.md` | `~/.config/opencode/skills/ocat/` | `<project>/.opencode/skills/ocat/` |
 | `scaffold/opencode.json.snippet` | N/A | `<project>/opencode.json` (if absent) |
 | `scaffold/ocat.json.snippet` | N/A | `<project>/.ocat.json` (if absent) |
 
@@ -351,7 +351,7 @@ ocat/
 
 | Design Aspect | OpenCode Mechanism | Status |
 |---------------|-------------------|--------|
-| Agent definition | `~/.config/opencode/agents/*.md` or `.opencode/.agents/*.md` | ✅ Aligned |
+| Agent definition | `~/.config/opencode/agents/*.md` or `.opencode/agents/*.md` | ✅ Aligned |
 | Primary vs subagent | `mode: primary` / `subagent` | ✅ Aligned |
 | Leader→worker scoping | `permission.task` glob rules | ✅ Aligned |
 | Workflow context | Skill loaded via `skill` tool | ✅ Aligned |
@@ -424,14 +424,17 @@ Implement a **hard confirmation gate** after Phase 0. This is the only mandatory
 ### 11.3 Dot-Prefixed Internal Directories
 
 **Current Issue:**
-Internal workflow directories (`boards/`, `agents/`, `skills/`, `ocat.json`) are not visually distinguished from project code.
+Internal workflow directories (`boards/`, `.opencode/agents/`, `.opencode/skills/`, `ocat.json`) are not visually distinguished from project code.
 
 **Decision:**
-Rename all OCATeam-internal directories and files to use dot-prefix:
-- `boards/` → `.boards/`
-- `agents/` → `.agents/` (per-project install target)
-- `skills/` → `.skills/` (per-project install target)
-- `ocat.json` → `.ocat.json`
+Rename OCATeam-internal files to use dot-prefix, but keep agent/skill directory names per OpenCode's requirements:
+
+| Path | Dot-prefix? | Why |
+|------|------------|-----|
+| `boards/` → `.boards/` | ✅ Yes | OCATeam-internal runtime state |
+| `.opencode/agents/` | ❌ No | OpenCode glob `{agent,agents}/**/*.md` — `.agents/` undetectable |
+| `.opencode/skills/` | ❌ No | OpenCode glob `{skill,skills}/**/SKILL.md` — `.skills/` undetectable |
+| `ocat.json` → `.ocat.json` | ✅ Yes | OCATeam config file |
 
 **Rationale:**
 - Follows Unix convention for hidden/internal files (like `.git/`, `.vscode/`)
@@ -532,7 +535,8 @@ For existing projects using OCATeam v0.1.x:
 1. **Directory rename**: Provide `migrate.sh` script
    ```bash
    ./migrate.sh
-   # Renames boards/ → .boards/, agents/ → .agents/, etc.
+   # Renames boards/ → .boards/ and ocat.json → .ocat.json
+   # (agents/ and skills/ under .opencode/ stay as-is — OpenCode glob requires exact names)
    # Updates .gitignore
    # Preserves all board content
    ```

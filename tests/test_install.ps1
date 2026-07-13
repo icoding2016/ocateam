@@ -176,12 +176,12 @@ Describe "install.ps1" {
             $result = Invoke-InstallerProject -Arguments "-Project `"$TestProject`""
             $result.ExitCode | Should -Be 0
 
-            Join-Path $TestProject ".opencode\.agents\ocat-orchestrator.md" | Should -Exist
-            Join-Path $TestProject ".opencode\.agents\ocat-architect.md"    | Should -Exist
-            Join-Path $TestProject ".opencode\.agents\ocat-developer.md"    | Should -Exist
-            Join-Path $TestProject ".opencode\.agents\ocat-reviewer.md"     | Should -Exist
-            Join-Path $TestProject ".opencode\.agents\ocat-explorer.md"     | Should -Exist
-            Join-Path $TestProject ".opencode\.skills\ocat\SKILL.md"        | Should -Exist
+            Join-Path $TestProject ".opencode\agents\ocat-orchestrator.md" | Should -Exist
+            Join-Path $TestProject ".opencode\agents\ocat-architect.md"    | Should -Exist
+            Join-Path $TestProject ".opencode\agents\ocat-developer.md"    | Should -Exist
+            Join-Path $TestProject ".opencode\agents\ocat-reviewer.md"     | Should -Exist
+            Join-Path $TestProject ".opencode\agents\ocat-explorer.md"     | Should -Exist
+            Join-Path $TestProject ".opencode\skills\ocat\SKILL.md"        | Should -Exist
         }
 
         It "scaffolds opencode.json when absent" {
