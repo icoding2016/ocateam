@@ -307,7 +307,7 @@ The Orchestrator reads a project's `.ocat.json` to determine which subagents are
 | ocat-reviewer | subagent | Quality gate, read-only | high | deny | deny |
 | ocat-explorer | subagent | Research, inspection | medium | deny | deny |
 
-> **About thinking configuration:** Each agent declares its intended thinking/reasoning level via the `thinking` frontmatter field. This is currently declarative (routed to `options.thinking`) — it documents intent but does not yet drive model behavior across all providers. For unified thinking level support, track [OpenCode Issue #33013](https://github.com/opencode-ai/opencode/issues/33013) (effort ladder design). In the meantime, provider-specific thinking can be configured in `opencode.json` under `provider.<name>.models.<model>.options`.
+> **Thinking level:** Each agent declares its intended thinking/reasoning depth via the `thinking` frontmatter field. For orchestrator (`opencode-go/qwen3.7-plus`), thinking is explicitly enabled via `options.thinking`. DeepSeek and GLM models enable thinking by default — no extra config needed.
 
 ---
 
