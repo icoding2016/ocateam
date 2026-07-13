@@ -110,6 +110,18 @@ install_project() {
     warn "ocat.json already exists — skipped scaffold"
   fi
 
+  # Ensure boards/ is gitignored (runtime state, never committed)
+  local gitignore="$project_path/.gitignore"
+  if [ -f "$gitignore" ]; then
+    if ! grep -qxF 'boards/' "$gitignore" 2>/dev/null; then
+      echo 'boards/' >> "$gitignore"
+      log "Added boards/ to .gitignore"
+    fi
+  else
+    echo 'boards/' > "$gitignore"
+    log "Created .gitignore with boards/"
+  fi
+
   echo ""
   log "Installation complete!"
   echo ""

@@ -148,7 +148,7 @@ OCATeam uses two configuration files at the project root, each with a distinct r
 **Config:**
 - `mode: primary`
 - `model: anthropic/claude-sonnet-4-20250514` (strong reasoning model; overridable)
-- `steps: 40`
+- `steps: 200`
 - `permission.task`: denies `*`, allows the four `ocat-*` workers
 
 **Key behaviors:**
@@ -303,6 +303,7 @@ The `ocat` skill (`skills/ocat/SKILL.md`) is the workflow intelligence layer —
 | **MAX_REVIEW_ITERATIONS = 3 → escalate** | Prevents endless implement/refine loops |
 | **OCATeam config in `ocat.json`, OpenCode config in `opencode.json`** | Prevents schema validation conflicts; each file has a single owner. Discovered during Tier 3 POC testing when custom keys in `opencode.json` caused `Unrecognized key` errors. |
 | **Orchestration in prompts + skill, not a wrapper script** | Idiomatic OpenCode usage; no external process spawning |
+| **User confirmation gate after Phase 0** | Prevents runaway auto-execution; ensures user alignment before committing subagent resources |
 
 ---
 

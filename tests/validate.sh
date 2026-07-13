@@ -249,11 +249,51 @@ PYEOF
 check_no_hardcoded_paths() {
   echo ""
   echo "── No hardcoded paths ──"
+  local ok=true
+
   # Ensure install.sh doesn't contain /home/ paths (portability)
   if grep -q '/home/' "$PROJECT_DIR/install.sh"; then
     fail "install.sh contains /home/ hardcoded paths"
+    ok=false
   else
     pass "install.sh has no hardcoded /home/ paths"
+  fi
+
+  # Ensure install.ps1 doesn't contain C:\Users\ hardcoded paths
+  if [ -f "$PROJECT_DIR/install.ps1" ]; then
+    if grep -q 'C:\\Users\\' "$PROJECT_DIR/install.ps1"; then
+      fail "install.ps1 contains C:\\Users\\ hardcoded paths"
+      ok=false
+    else
+      pass "install.ps1 has no hardcoded C:\\Users\\ paths"
+    fi
+  fi
+
+  $ok
+}
+
+check_powershell_syntax() {
+  echo ""
+  echo "── PowerShell syntax ──"
+  if ! command -v pwsh &>/dev/null; then
+    warn "pwsh not available — skipping install.ps1 syntax check"
+    return
+  fi
+
+  # Use PowerShell's own parser to validate syntax (fast, no execution).
+  # IMPORTANT: ParseFile returns errors in the [ref] array — it does NOT throw.
+  # We MUST capture and check $errors.Count; discarding with [ref]$null
+  # would silently accept broken scripts.
+  if pwsh -NoProfile -Command "
+    \$errors = @()
+    \$null = [System.Management.Automation.Language.Parser]::ParseFile(
+      '$PROJECT_DIR/install.ps1', [ref]\$null, [ref]\$errors
+    )
+    if (\$errors.Count -gt 0) { exit 1 } else { exit 0 }
+  " 2>/dev/null; then
+    pass "install.ps1 syntax valid"
+  else
+    fail "install.ps1 syntax error"
   fi
 }
 
@@ -266,6 +306,7 @@ main() {
   echo "========================================"
 
   check_bash_syntax
+  check_powershell_syntax
   check_all_yaml_frontmatter
   check_json_validity
   check_agent_required_fields

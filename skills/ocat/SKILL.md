@@ -1,7 +1,7 @@
 ---
 name: ocat
 version: 0.1.0
-description: Multi-agent workflow for end-to-end project delivery (requirement analysis → design → implement/test/debug → quality gating). Use when starting a new software project, running through a full development lifecycle, or when the orchestrator needs workflow context for phase planning and delegation.
+description: "Multi-agent orchestration for end-to-end project delivery. Use when: (1) the active agent is ocat-orchestrator, (2) user mentions ocat agents (ocat-developer, ocat-reviewer, ocat-architect, ocat-explorer), (3) starting a new software project, (4) running a multi-phase development workflow with quality gates, (5) needing phase planning or subagent delegation. Triggers: 'ocat', 'orchestrator', 'multi-agent workflow', 'project delivery', 'design → implement → review'."
 license: MIT
 compatibility: opencode
 metadata:
@@ -22,6 +22,34 @@ Load this skill when:
 - Running a multi-phase development workflow
 - Need structured quality gating and review cycles
 - Want document-based coordination between agents
+- The active agent is ocat-orchestrator or any ocat-* agent
+
+## Project Initialization
+
+When starting a new OCAT workflow in a project, the Orchestrator MUST:
+
+1. **Ensure `boards/` is gitignored** — The `boards/` directory contains runtime state and should never be committed. Add `boards/` to the project's `.gitignore` if not already present:
+   ```bash
+   if [ -f .gitignore ]; then
+     grep -qxF 'boards/' .gitignore || echo 'boards/' >> .gitignore
+   else
+     echo 'boards/' > .gitignore
+   fi
+   ```
+
+2. **Create the board directory structure**:
+   ```
+   boards/
+   ├── orchestrator/<project_name>/board.md
+   ├── developer/
+   ├── reviewer/
+   ├── architect/
+   └── explorer/
+   ```
+
+3. **Verify `ocat.json` exists** — If not, scaffold it from `scaffold/ocat.json.snippet` (if available) or create a default with all agents active.
+
+This initialization happens in Phase 0, before any subagent delegation.
 
 ## Architecture
 
@@ -47,6 +75,50 @@ All coordination is document-based via board files in `boards/`. Agents share th
 - Orchestrator asks clarifying questions
 - Explorer researches existing solutions, libraries, precedents
 - Output: clear, testable requirements with scope boundaries
+
+### User Confirmation Gate (After Phase 0)
+**Goal**: Ensure user approves requirements and implementation plan before auto-execution.
+**Owner**: Orchestrator
+
+Before proceeding to Phase 1, the Orchestrator MUST:
+
+1. **Present the requirements summary** to the user:
+   - What will be built
+   - Scope boundaries
+   - Key assumptions
+
+2. **Present the implementation plan**:
+   - Phases and milestones
+   - Estimated complexity
+   - Which subagents will be involved
+
+3. **Wait for explicit user approval**:
+   - User confirms: "Proceed" or "Yes" → continue to Phase 1
+   - User requests changes: revise requirements, loop back
+   - User cancels: stop workflow
+
+**Format for confirmation request:**
+```
+## Implementation Plan
+
+### Requirements Summary
+[What will be built]
+
+### Implementation Approach
+- Phase 1: Design — [brief description]
+- Phase 2: Implementation — [brief description]
+- Phase 3: Testing — [brief description]
+- Phase 4: Quality Gate — [brief description]
+
+### Subagents to be Involved
+- ocat-architect: [role]
+- ocat-developer: [role]
+- ocat-reviewer: [role]
+
+**Do you approve this plan? (yes/no/modify)**
+```
+
+This gate prevents runaway auto-execution and ensures user alignment before committing resources.
 
 ### Phase 1: System Design
 **Goal**: Produce a reviewable design document.

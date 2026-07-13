@@ -36,7 +36,7 @@ run_project() {
 # ── Global Install Tests ─────────────────────────────────
 
 @test "global: installs agents and skill" {
-  run_global --global
+  run run_global --global
   [ "$status" -eq 0 ]
   [ -f "$TEST_HOME/.config/opencode/agents/ocat-orchestrator.md" ]
   [ -f "$TEST_HOME/.config/opencode/agents/ocat-architect.md" ]
@@ -47,7 +47,7 @@ run_project() {
 }
 
 @test "global: installs exactly 5 agent files" {
-  run_global --global
+  run run_global --global
   [ "$status" -eq 0 ]
   count=$(ls "$TEST_HOME/.config/opencode/agents"/ocat-*.md 2>/dev/null | wc -l)
   [ "$count" -eq 5 ]
@@ -56,16 +56,16 @@ run_project() {
 @test "global: creates target directories if absent" {
   # Ensure target dirs don't exist yet
   rm -rf "$TEST_HOME/.config"
-  run_global --global
+  run run_global --global
   [ "$status" -eq 0 ]
   [ -d "$TEST_HOME/.config/opencode/agents" ]
   [ -d "$TEST_HOME/.config/opencode/skills/ocat" ]
 }
 
 @test "global: uninstall removes all ocat files" {
-  run_global --global
+  run run_global --global
   [ "$status" -eq 0 ]
-  run_global --uninstall --global
+  run run_global --uninstall --global
   [ "$status" -eq 0 ]
   # Agent files gone
   run ls "$TEST_HOME/.config/opencode/agents"/ocat-*.md
@@ -75,17 +75,17 @@ run_project() {
 }
 
 @test "global: uninstall is idempotent" {
-  run_global --global
-  run_global --uninstall --global
+  run run_global --global
+  run run_global --uninstall --global
   [ "$status" -eq 0 ]
-  run_global --uninstall --global
+  run run_global --uninstall --global
   [ "$status" -eq 0 ]
 }
 
 @test "global: double install is idempotent" {
-  run_global --global
+  run run_global --global
   [ "$status" -eq 0 ]
-  run_global --global
+  run run_global --global
   [ "$status" -eq 0 ]
   # Files should still be there
   [ -f "$TEST_HOME/.config/opencode/agents/ocat-orchestrator.md" ]
@@ -94,7 +94,7 @@ run_project() {
 # ── Per-Project Install Tests ────────────────────────────
 
 @test "project: installs agents and skill" {
-  run_project --project "$TEST_PROJECT"
+  run run_project --project "$TEST_PROJECT"
   [ "$status" -eq 0 ]
   [ -f "$TEST_PROJECT/.opencode/agents/ocat-orchestrator.md" ]
   [ -f "$TEST_PROJECT/.opencode/agents/ocat-architect.md" ]
@@ -105,7 +105,7 @@ run_project() {
 }
 
 @test "project: scaffolds opencode.json when absent" {
-  run_project --project "$TEST_PROJECT"
+  run run_project --project "$TEST_PROJECT"
   [ "$status" -eq 0 ]
   [ -f "$TEST_PROJECT/opencode.json" ]
   # Should be valid JSON
@@ -115,15 +115,38 @@ run_project() {
 @test "project: skips scaffold when opencode.json exists" {
   # Pre-create an opencode.json
   echo '{"existing": true}' > "$TEST_PROJECT/opencode.json"
-  run_project --project "$TEST_PROJECT"
+  run run_project --project "$TEST_PROJECT"
   [ "$status" -eq 0 ]
   # Original content preserved
   grep -q '"existing": true' "$TEST_PROJECT/opencode.json"
 }
 
 @test "project: errors on missing project directory" {
-  run_project --project "/tmp/nonexistent-ocat-test-dir-$$"
+  run run_project --project "/tmp/nonexistent-ocat-test-dir-$$"
   [ "$status" -ne 0 ]
+}
+
+@test "project: adds boards/ to .gitignore" {
+  run run_project --project "$TEST_PROJECT"
+  [ "$status" -eq 0 ]
+  [ -f "$TEST_PROJECT/.gitignore" ]
+  grep -qxF 'boards/' "$TEST_PROJECT/.gitignore"
+}
+
+@test "project: appends boards/ to existing .gitignore" {
+  echo 'node_modules/' > "$TEST_PROJECT/.gitignore"
+  run run_project --project "$TEST_PROJECT"
+  [ "$status" -eq 0 ]
+  grep -qxF 'node_modules/' "$TEST_PROJECT/.gitignore"
+  grep -qxF 'boards/' "$TEST_PROJECT/.gitignore"
+}
+
+@test "project: does not duplicate boards/ in .gitignore" {
+  echo 'boards/' > "$TEST_PROJECT/.gitignore"
+  run run_project --project "$TEST_PROJECT"
+  [ "$status" -eq 0 ]
+  count=$(grep -cxF 'boards/' "$TEST_PROJECT/.gitignore")
+  [ "$count" -eq 1 ]
 }
 
 # ── Error Handling Tests ─────────────────────────────────
@@ -132,19 +155,17 @@ run_project() {
   # Temporarily hide the agents directory
   local hidden="$BATS_TEST_DIRNAME/../agents.hidden"
   mv "$AGENTS_SRC" "$hidden"
-  run_global --global
-  local rc=$?
+  run run_global --global
   mv "$hidden" "$AGENTS_SRC"
-  [ "$rc" -ne 0 ]
+  [ "$status" -ne 0 ]
 }
 
 @test "error: fails when skill source missing" {
   local hidden="$BATS_TEST_DIRNAME/../skills/ocat/SKILL.md.hidden"
   mv "$SKILL_SRC" "$hidden"
-  run_global --global
-  local rc=$?
+  run run_global --global
   mv "$hidden" "$SKILL_SRC"
-  [ "$rc" -ne 0 ]
+  [ "$status" -ne 0 ]
 }
 
 # ── Argument Parsing Tests ───────────────────────────────
