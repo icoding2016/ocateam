@@ -1,6 +1,8 @@
 # Project board files (generated at runtime, not committed)
 .boards/
-.agents/
+
+# Project-local OpenCode config (per-machine, never committed)
+.opencode/
 
 # Editor / OS
 .DS_Store
