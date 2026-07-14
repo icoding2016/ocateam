@@ -5,8 +5,24 @@ mode: primary
 model: opencode-go/qwen3.7-plus
 steps: 1000
 permission:
+  read: allow
+  glob: allow
+  grep: allow
+  list: allow
   edit: ask
-  bash: ask
+  bash:
+    "grep *": allow
+    "find *": allow
+    "cat *": allow
+    "ls *": allow
+    "echo *": allow
+    "date *": allow
+    "mkdir *": allow
+    "git *": allow
+    "which *": allow
+    "*": ask
+  webfetch: allow
+  websearch: allow
   task:
     "*": deny
     ocat-architect: allow

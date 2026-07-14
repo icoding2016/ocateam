@@ -606,6 +606,136 @@ Agent YAML frontmatter fields are **not** generic metadata — they are model op
 **Note on `options.thinking`:**
 The `options.thinking` field in agent frontmatter is OpenCode's mechanism for explicitly enabling thinking on models that require the Anthropic-format `{type: enabled, budgetTokens: N}` parameter. This is distinct from a simple `thinking:` string field and should only be used when the target model's provider SDK requires it. For OCATeam's current models (DeepSeek, GLM), thinking is enabled by default and no explicit config is needed.
 
+### 11.10 Permission Optimization for Long Workflows
+
+**Problem:**
+During long-running development sessions, the ocat-orchestrator is frequently interrupted by permission prompts for low-risk, read-only shell commands like `grep`, `cat`, `find`, `ls`, `echo`, `git status`, etc. While `bash: ask` (the previous setting) is safe, it creates a poor UX — requiring manual approval for dozens of commands over the course of a multi-phase workflow.
+
+**OpenCode Permission System Analysis:**
+
+OpenCode's permission system supports three action levels (`allow`, `ask`, `deny`) and two configuration modes (per-tool and per-pattern):
+
+| Level | Behavior |
+|-------|----------|
+| `allow` | Run without approval |
+| `ask` | Prompt user for approval |
+| `deny` | Block the action |
+
+For most tools (`bash`, `read`, `edit`, `glob`, `grep`, `list`, `task`, `skill`, etc.), the shorthand action applies to the entire tool. However, **`bash` supports an object syntax** with command-pattern-specific rules:
+
+```yaml
+permission:
+  bash:
+    "*": ask              # catch-all: prompt for approval
+    "grep *": allow       # auto-allow grep commands
+    "git status*": allow  # auto-allow git status
+```
+
+Rules are evaluated by glob pattern matching against the parsed command string. **The last matching rule wins**, so the catch-all `"*"` should come first, with specific allow rules after.
+
+**Permission merge priority** (from OpenCode source):
+
+```
+Agent default permissions (lowest)
+  → merge
+User-configured permissions (in opencode.json)
+  → merge
+Session runtime permissions (highest)
+```
+
+This means:
+1. Agent definitions (`.md` files) set baseline permissions
+2. Project `opencode.json` can override per-agent
+3. User's "always" clicks add runtime rules (non-persistent across restarts)
+
+**Research: "always" button behavior**
+
+When the permission prompt appears and the user clicks "always":
+- Adds an `allow` rule for the session's `s.approved` array
+- Automatically batch-approves other pending requests matching the same pattern
+- **Does NOT persist across OpenCode restarts** — intentional design choice
+
+Therefore, "always" is not a reliable solution for recurring workflows. The proper fix is to configure the allowed patterns in the agent definition itself.
+
+**Decision:**
+
+Replace `bash: ask` with granular command-pattern permissions on the orchestrator:
+
+| Command Pattern | Policy | Rationale |
+|----------------|--------|-----------|
+| `grep *` | `allow` | Read-only content search |
+| `find *` | `allow` | Read-only file discovery |
+| `cat *` | `allow` | Read-only file viewing |
+| `ls *` | `allow` | Read-only directory listing |
+| `echo *` | `allow` | Logging and status output |
+| `date *` | `allow` | Timestamps for logging |
+| `mkdir *` | `allow` | Creating board directory structure |
+| `git *` | `allow` | All git operations (status/diff/log/add/commit) — essential to workflow |
+| `which *` | `allow` | System utility location |
+| `*` (other) | `ask` | Potentially dangerous commands still require approval |
+
+Also explicitly set read-only tool permissions:
+
+| Tool | Policy | Rationale |
+|------|--------|-----------|
+| `read` | `allow` | File reading — already default `allow` |
+| `glob` | `allow` | File globbing — already default `allow` |
+| `grep` | `allow` | Content search — already default `allow` |
+| `list` | `allow` | Directory listing — already default `allow` |
+| `edit` | `ask` | Keep safety valve — orchestrator should not edit code |
+| `webfetch` | `allow` | Web research for context |
+| `websearch` | `allow` | Web search for context |
+
+**Rationale:**
+- The orchestrator is a **coordination agent**, not an implementation agent. Its bash usage is limited to logging, git operations, and read-only file inspection.
+- The dedicated tools (`read`, `glob`, `grep`, `list`) are already default `allow` — no prompts occur for them.
+- `edit: ask` remains as a safety net — the orchestrator's instructions already forbid direct code editing, so edit prompts should rarely fire.
+- Pattern-based `bash` rules eliminate the most common interruption source while keeping a catch-all `ask` for unexpected/high-risk commands.
+
+**User-configurable overrides:**
+
+Users who want even less friction can further override in their project's `.opencode/opencode.json`:
+
+```json
+{
+  "agent": {
+    "ocat-orchestrator": {
+      "permission": {
+        "bash": "allow"
+      }
+    }
+  }
+}
+```
+
+Users who want more safety can add restrictions:
+
+```json
+{
+  "agent": {
+    "ocat-orchestrator": {
+      "permission": {
+        "bash": {
+          "git push*": "ask",
+          "git commit*": "ask"
+        }
+      }
+    }
+  }
+}
+```
+
+Project-level overrides are merged after agent defaults (higher priority), so specific overrides take effect while keeping the base patterns.
+
+**Other agents remain unchanged:**
+
+| Agent | Permission | Rationale |
+|-------|-----------|-----------|
+| ocat-architect | `edit: allow`, `bash: deny` | Read-only design work |
+| ocat-developer | `edit: allow`, `bash: allow` | Full implementation access |
+| ocat-reviewer | `edit: deny`, `bash: deny` | Read-only review |
+| ocat-explorer | `edit: deny`, `bash: deny` | Read-only research |
+
 ---
 
 ## 12. Next Steps

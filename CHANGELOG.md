@@ -16,6 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   - Dot-prefixed `.agents/` and `.skills/` are NOT discoverable
   - Correct paths: `.opencode/agents/` and `.opencode/skills/`
 - Added migration script: `scripts/migrate-v0.2.sh`
+- **Permission optimization**: ocat-orchestrator now uses granular bash command-pattern permissions instead of `bash: ask`
+  - Read-only commands (`grep`, `find`, `cat`, `ls`, `echo`, `date`, `mkdir`, `git`, `which`) auto-allowed
+  - Catch-all `"*": ask` retains safety for unexpected/dangerous commands
+  - Explicit `read/glob/grep/list: allow` for read-only dedicated tools
+  - Project-level overrides supported via `.opencode/opencode.json`
 
 ## [0.1.0] — 2026-07-10
 
