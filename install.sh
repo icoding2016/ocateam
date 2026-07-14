@@ -105,9 +105,75 @@ install_project() {
   # Scaffold .ocat.json (always warn if exists, never overwrite)
   if [ -f "$ocat_config" ] && [ ! -f "$project_path/.ocat.json" ]; then
     cp "$ocat_config" "$project_path/.ocat.json"
-    log "Scaffolded .ocat.json with active agents config"
+    log "Scaffolded .ocat.json with v0.3.0 config"
   elif [ -f "$ocat_config" ] && [ -f "$project_path/.ocat.json" ]; then
     warn ".ocat.json already exists — skipped scaffold"
+  fi
+
+  # Apply permission_mode override to opencode.json
+  # This uses OpenCode's agent permission merge (project > agent definition)
+  local perm_mode
+  if [ -f "$project_path/.ocat.json" ]; then
+    perm_mode=$(jq -r '.permission_mode // "balanced"' "$project_path/.ocat.json" 2>/dev/null || echo "balanced")
+
+    if [ "$perm_mode" != "balanced" ]; then
+      local opencode_config="$project_path/opencode.json"
+      # Create a temporary override that merges with existing or scaffolded opencode.json
+      local override_opencode="$project_path/.opencode.tmp.json"
+
+      if [ "$perm_mode" = "auto" ]; then
+        log "Applying 'auto' permission mode — orchestrator will have bash: allow, edit: allow"
+        cat > "$override_opencode" << 'PERM_EOF'
+{
+  "agent": {
+    "ocat-orchestrator": {
+      "permission": {
+        "bash": "allow",
+        "edit": "allow",
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "list": "allow",
+        "webfetch": "allow",
+        "websearch": "allow"
+      }
+    }
+  }
+}
+PERM_EOF
+      elif [ "$perm_mode" = "strict" ]; then
+        log "Applying 'strict' permission mode — orchestrator will have bash: ask, edit: ask"
+        cat > "$override_opencode" << 'PERM_EOF'
+{
+  "agent": {
+    "ocat-orchestrator": {
+      "permission": {
+        "bash": "ask",
+        "edit": "ask",
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "list": "allow",
+        "webfetch": "allow",
+        "websearch": "allow"
+      }
+    }
+  }
+}
+PERM_EOF
+      fi
+
+      # Merge override into existing opencode.json using jq if available
+      if command -v jq &>/dev/null && [ -f "$opencode_config" ]; then
+        jq -s '.[0] * .[1]' "$opencode_config" "$override_opencode" > "${opencode_config}.tmp" && \
+          mv "${opencode_config}.tmp" "$opencode_config"
+        log "Merged permission_mode into $opencode_config"
+        rm -f "$override_opencode"
+      else
+        warn "jq not found or opencode.json missing — saved override to $override_opencode"
+        warn "  Manually merge it into $opencode_config"
+      fi
+    fi
   fi
 
   # Ensure .boards/ is gitignored (runtime state, never committed)

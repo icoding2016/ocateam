@@ -1,6 +1,6 @@
 ---
 name: ocat
-version: 0.2.0
+version: 0.3.0
 description: "Multi-agent orchestration for end-to-end project delivery. Use when: (1) the active agent is ocat-orchestrator, (2) user mentions ocat agents (ocat-developer, ocat-reviewer, ocat-architect, ocat-explorer), (3) starting a new software project, (4) running a multi-phase development workflow with quality gates, (5) needing phase planning or subagent delegation. Triggers: 'ocat', 'orchestrator', 'multi-agent workflow', 'project delivery', 'design → implement → review'."
 license: MIT
 compatibility: opencode
@@ -67,77 +67,65 @@ All coordination is document-based via board files in `.boards/`. Agents share t
 
 ## Phase Structure
 
-### Phase 0: Requirement Understanding
-**Goal**: Fully understand what the user wants to build.
+### Phase 0: Requirements Interview
+**Goal**: Conduct structured interview to fully understand what the user wants to build.
 **Owner**: Orchestrator (with Explorer support)
-**Deliverable**: Clarified requirements documented in `.boards/orchestrator/<project>/board.md`
+**Deliverable**: Requirements document in `.boards/orchestrator/<project>/requirements.md`
 
-- Orchestrator asks clarifying questions
+- Orchestrator conducts structured interview with user using OpenCode's `question` tool
+- Questions cover: project name/type, core features, tech constraints, non-functional requirements
 - Explorer researches existing solutions, libraries, precedents
 - Output: clear, testable requirements with scope boundaries
 
-### Hard Confirmation Gate (After Phase 0)
+#### Question Template
 
-**MANDATORY**: Before proceeding to Phase 1, the Orchestrator MUST obtain explicit user approval.
-
-**Process:**
-1. Present requirements summary to user
-2. Present implementation plan (phases, subagents, estimated complexity)
-3. Wait for explicit user response:
-   - "Yes" / "Proceed" / "Approve" → Continue to Phase 1
-   - "No" / "Cancel" → Stop workflow
-   - "Modify" / "Change" → Revise requirements, loop back to step 1
-
-**Confirmation Template:**
-```
-## Implementation Plan
-
-### Requirements Summary
-[What will be built]
-
-### Implementation Approach
-- Phase 1: Design — [description]
-- Phase 2: Implementation — [description]
-- Phase 3: Testing — [description]
-- Phase 4: Quality Gate — [description]
-
-### Subagents to be Involved
-- ocat-architect: [role]
-- ocat-developer: [role]
-- ocat-reviewer: [role]
-
-**Do you approve this plan? (yes/no/modify)**
+```markdown
+1. What is the project name and type? (CLI / Web / API / Library)
+2. What are the core features? (list top 3-5)
+3. What are the technical constraints? (language, framework, platform)
+4. What are the non-functional requirements? (performance, security, scalability)
+5. Are there any existing systems or codebases to consider?
+6. What is the timeline or priority?
 ```
 
-**This is a HARD GATE** — the orchestrator cannot proceed without explicit user approval. This is the only mandatory confirmation in the entire workflow.
+- **Gate**: confirm_with_user() — MANDATORY
 
-### Phase 1: System Design
-**Goal**: Produce a reviewable design document.
+### Phase 1: System Design + Delivery Plan
+**Goal**: Produce a reviewable design document and delivery plan.
 **Owner**: Orchestrator → Architect
-**Deliverable**: Design document in `.boards/architect/<task_id>/board.md`
+**Deliverable**: Design document in `.boards/architect/<task_id>/board.md` + delivery plan in `.boards/orchestrator/<project>/delivery-plan.md`
 
-- Architect analyzes requirements
-- Architect produces: system overview, component diagram, API specs, data models, technology choices
-- Reviewer reviews design → APPROVED or NEEDS_REVISION
+- Architect produces: system design document AND delivery plan (implementation stages)
+- Reviewer evaluates both for quality (4 dimensions: first-principles, user-value, traceability, contamination)
+- Orchestrator evaluates delivery plan for **execution feasibility** (stage sizing, ordering, dependencies)
+- Both reviews must pass before Phase 1 gate
 
-### Phase 2: Implementation
-**Goal**: Implement features per the approved design.
-**Owner**: Orchestrator → Developer
-**Deliverable**: Working code with tests, progress in `.boards/developer/<task_id>/board.md`
+**Gate**: confirm_with_user() — MANDATORY
 
-- Developer implements one task at a time (tasks decomposed from design)
-- Developer writes tests alongside implementation
-- Each task goes through the Implement/Refine → Review cycle
+### Phase 2: Iterative Delivery
+**Goal**: Implement features per approved design through multiple delivery stages.
+**Owner**: Orchestrator → Developer + Reviewer
+**Deliverable**: Working code with tests, progress tracked in delivery plan
 
-### Phase 3: Testing & Debugging
-**Goal**: Verify correctness and fix issues.
-**Owner**: Orchestrator → Developer (test focus)
-**Deliverable**: Test results + fixes in `.boards/developer/<task_id>/board.md`
+- Multiple delivery stages, each stage follows this pattern:
+  1. Developer autonomous loop: implement → test → fix (orchestrator does NOT interrupt)
+  2. Reviewer loop: review → if NEEDS_REVISION → fix → test → re-review (max N iterations configurable)
+  3. If APPROVED: check gates.delivery_stage_approval
+     - true/absent → confirm_with_user() before next stage
+     - false → log_and_proceed()
+  4. If max iterations reached without APPROVED → escalate to user
+- Orchestrator tracks stages via `.boards/orchestrator/<project>/delivery-plan.md`
+- After all stages complete → proceed to Phase 3
 
-- Developer runs full test suite and reports results to task board
-- Developer fixes failing tests, with each fix going through the Implement/Refine → Review cycle
-- Reviewer verifies test coverage and quality (APPROVED / NEEDS_REVISION)
-- MAX_REVIEW_ITERATIONS applies per fix iteration (escalate after 3 without APPROVED)
+### Phase 3: Final Delivery
+**Goal**: Integration testing and final verification.
+**Owner**: Orchestrator → Developer + Reviewer
+**Deliverable**: Fully tested, reviewed project
+
+- Integration testing (full suite)
+- Final Review by Reviewer (4 dimensions)
+- **Gate**: confirm_with_user() — MANDATORY
+- Project delivered
 
 ### Phase 4: Quality Gate
 **Goal**: Final verification against original requirements.
@@ -153,29 +141,63 @@ All coordination is document-based via board files in `.boards/`. Agents share t
 
 ---
 
-## Implement/Refine → Review Cycle
+## Configurable Gate System
 
-Every implementation task follows this cycle:
+Gates control where user confirmation is required. Configured via `.ocat.json`:
+
+```json
+{
+  "gates": {
+    "phase_0_requirements": "mandatory",
+    "phase_1_design": "mandatory", 
+    "delivery_stage_approval": true,
+    "phase_3_final": "mandatory"
+  },
+  "review": {
+    "max_iterations": 3
+  }
+}
+```
+
+### Gate Value Semantics
+
+| Value | Behavior |
+|-------|----------|
+| `"mandatory"` | Cannot be disabled. Orchestrator MUST call confirm_with_user() |
+| `true` | Enabled by default, can be set to false |
+| `false` | Disabled by default, can be set to true |
+
+**Gate behavior**: orchestrator checks `.ocat.json.gates` before each gate decision.
+
+---
+
+## Developer Loop
+
+Developer operates autonomously with no maximum iterations:
 
 ```
-1. Orchestrator defines task → delegates to Developer via Task tool
-2. Developer implements + updates its task board
-3. Orchestrator delegates to Reviewer via Task tool
-4. Reviewer evaluates against all four review dimensions:
+1. Developer implements feature
+2. Developer runs tests
+3. Developer fixes failures
+4. Developer reports completion when ready
+```
+
+## Reviewer Loop
+
+Reviewer operates with configurable maximum iterations:
+
+```
+1. Reviewer evaluates against 4 dimensions:
    - **First-Principles Review**: question every element from fundamentals
    - **User-Value Alignment**: check deviation, omission, and over-engineering from the user's perspective
    - **Requirement Traceability**: every output element must trace to a requirement
    - **Contamination Detection**: flag cross-project/platform elements that don't belong
-5. Reviewer writes verdict → APPROVED / NEEDS_REVISION
-6. If APPROVED → Orchestrator proceeds to next task/phase
-7. If NEEDS_REVISION → Orchestrator re-delegates to Developer with Reviewer's feedback
-8. Loop to step 2
+2. If NEEDS_REVISION → developer fixes → test → re-review
+3. If max iterations hit → escalate to user
+4. If APPROVED → stage gate check → proceed
 ```
 
-**MAX_REVIEW_ITERATIONS = 3**. After 3 iterations without APPROVED:
-- Orchestrator STOPS and escalates to the user
-- Include: summary of what was attempted, last Reviewer feedback, recommended path forward
-- User decides: override and proceed, redefine requirements, or abandon
+MAX_REVIEW_ITERATIONS is configured via `.ocat.json.review.max_iterations` (default 3).
 
 ---
 
@@ -228,18 +250,16 @@ Every implementation task follows this cycle:
 - [ ] Address review feedback
 - [ ] Design approved
 
-### Phase 2: Implementation
-- Task: <task_name>
-  - [ ] Implement (Developer)
-  - [ ] Write tests (Developer)
-  - [ ] Review (Reviewer) — iteration 1
-  - [ ] Address feedback
-  - [ ] Review (Reviewer) — iteration 2
+### Phase 2: Iterative Delivery (Stage N of M)
+- Stage: <name>
+  - [ ] Developer loop: implement → test → fix
+  - [ ] Reviewer loop: review → fix → re-review
+  - [ ] Stage gate: [pending/approved/skipped]
 
-### Phase 3: Testing
-- [ ] Run full test suite
-- [ ] Fix failures
-- [ ] Review test coverage
+### Phase 3: Final Delivery
+- [ ] Integration test
+- [ ] Final Review
+- [ ] 🔒 Final gate: [pending/approved]
 
 ### Phase 4: Quality Gate
 - [ ] Final review against requirements
@@ -278,6 +298,26 @@ Every implementation task follows this cycle:
 - [Issue or observation]
 ```
 
+## Requirements: <project>
+
+### Overview
+- Type: CLI / Web / API / Library
+- Primary goal: ...
+
+### Core Features
+1. Feature A — description
+
+### Non-Functional Requirements
+- Performance: ...
+- Security: ...
+
+### Technical Constraints
+- Language: ...
+- Framework: ...
+
+### Priorities
+1. P0: ...
+
 ---
 
 ## Activation Config
@@ -286,7 +326,18 @@ The Orchestrator reads a project's `.ocat.json` to determine which subagents are
 
 ```json
 {
-  "active_agents": ["architect", "developer", "reviewer", "explorer"]
+  "version": "0.3.0",
+  "active_agents": ["architect", "developer", "reviewer", "explorer"],
+  "permission_mode": "balanced",
+  "gates": {
+    "phase_0_requirements": "mandatory",
+    "phase_1_design": "mandatory",
+    "delivery_stage_approval": true,
+    "phase_3_final": "mandatory"
+  },
+  "review": {
+    "max_iterations": 3
+  }
 }
 ```
 
@@ -299,15 +350,13 @@ The Orchestrator reads a project's `.ocat.json` to determine which subagents are
 
 ## Agent Roles Summary
 
-| Agent | Mode | Purpose | Thinking | Can Edit | Can Bash |
-|-------|------|---------|----------|----------|----------|
-| ocat-orchestrator | primary | Plan, delegate, gate, escalate | high | ask | ask |
-| ocat-architect | subagent | System design, no code | high | allow | deny |
-| ocat-developer | subagent | Implementation + tests | high | allow | allow |
-| ocat-reviewer | subagent | Quality gate, read-only | high | deny | deny |
-| ocat-explorer | subagent | Research, inspection | medium | deny | deny |
-
-> **Thinking level:** Each agent declares its intended thinking/reasoning depth via the `thinking` frontmatter field. For orchestrator (`opencode-go/qwen3.7-plus`), thinking is explicitly enabled via `options.thinking`. DeepSeek and GLM models enable thinking by default — no extra config needed.
+| Agent | Mode | Purpose | Permission Model |
+|---|---|---|---|
+| ocat-orchestrator | primary | PM + Coordinator: interview, delegate, gate, track | balanced (see §11.10) |
+| ocat-architect | subagent | System design + delivery plan | edit allow, bash deny |
+| ocat-developer | subagent | Implementation + tests | edit allow, bash allow |
+| ocat-reviewer | subagent | Quality gate, read-only | edit deny, bash deny |
+| ocat-explorer | subagent | Research, inspection | edit deny, bash deny |
 
 ---
 
@@ -390,6 +439,9 @@ See `doc/execution-log-format.md` for full schema and examples.
 ---
 
 ## Interaction Strategy
+
+The interaction strategy is now configured via the `.ocat.json` gate system (§11.12).
+The decision tree below provides additional guidance for orchestrator communication style within phases.
 
 The workflow uses a dual-mode interaction strategy to balance quality assurance with execution speed.
 

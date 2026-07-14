@@ -150,6 +150,74 @@ function Install-Project {
         Write-Warn ".ocat.json already exists — skipped scaffold"
     }
 
+    # Apply permission_mode override (generates a sidecar file, warns about manual merge)
+    $ocatJsonPath = "$ProjectPath/.ocat.json"
+    if (Test-Path $ocatJsonPath) {
+        try {
+            $ocatRaw = Get-Content $ocatJsonPath -Raw
+            $ocatObj = $ocatRaw | ConvertFrom-Json
+            $permMode = if ($ocatObj.permission_mode) { $ocatObj.permission_mode } else { "balanced" }
+
+            if ($permMode -eq "auto") {
+                $overrideDest = "$ProjectPath/.opencode/permission_override.json"
+                New-Item -ItemType Directory -Force -Path "$ProjectPath/.opencode" | Out-Null
+                $json = @'
+{
+  "agent": {
+    "ocat-orchestrator": {
+      "permission": {
+        "bash": "allow",
+        "edit": "allow",
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "list": "allow",
+        "webfetch": "allow",
+        "websearch": "allow"
+      }
+    }
+  }
+}
+'@
+                $json | Set-Content -Path $overrideDest -NoNewline
+                Write-Log "permission_mode=auto: wrote override to $overrideDest"
+                Write-Warn "  PowerShell cannot auto-merge JSON. To apply 'auto' permissions:"
+                Write-Warn "    Merge $overrideDest into $ProjectPath/opencode.json"
+                Write-Warn "    or run: ./install.sh --project $(Split-Path $ProjectPath -Leaf) (WSL)"
+            }
+            elseif ($permMode -eq "strict") {
+                $overrideDest = "$ProjectPath/.opencode/permission_override.json"
+                New-Item -ItemType Directory -Force -Path "$ProjectPath/.opencode" | Out-Null
+                $json = @'
+{
+  "agent": {
+    "ocat-orchestrator": {
+      "permission": {
+        "bash": "ask",
+        "edit": "ask",
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "list": "allow",
+        "webfetch": "allow",
+        "websearch": "allow"
+      }
+    }
+  }
+}
+'@
+                $json | Set-Content -Path $overrideDest -NoNewline
+                Write-Log "permission_mode=strict: wrote override to $overrideDest"
+                Write-Warn "  PowerShell cannot auto-merge JSON. To apply 'strict' permissions:"
+                Write-Warn "    Merge $overrideDest into $ProjectPath/opencode.json"
+                Write-Warn "    or run: ./install.sh --project $(Split-Path $ProjectPath -Leaf) (WSL)"
+            }
+        }
+        catch {
+            Write-Warn "Failed to parse .ocat.json — skipping permission_mode override"
+        }
+    }
+
     # Ensure .boards/ is gitignored (runtime state, never committed)
     $gitignorePath = "$ProjectPath/.gitignore"
     if (Test-Path $gitignorePath) {
