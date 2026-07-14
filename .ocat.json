@@ -1,5 +1,5 @@
 {
-  "_comment": "OCATeam v0.3.0 configuration. See doc/design.md §§11.10-11.13 for details.",
+  "_comment": "OCATeam v0.3.0 self-configuration. Dogfooding our own workflow framework.",
   "version": "0.3.0",
   "active_agents": [
     "architect",

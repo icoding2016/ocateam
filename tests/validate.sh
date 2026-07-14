@@ -322,9 +322,9 @@ check_execution_log_docs() {
 check_confirmation_gate() {
   echo ""
   echo "── Confirmation gate ──"
-  # Check that SKILL.md contains the confirmation gate section
-  if grep -q "Hard Confirmation Gate" "$PROJECT_DIR/skills/ocat/SKILL.md"; then
-    pass "Confirmation gate documented in SKILL.md"
+  # Check that SKILL.md contains gates documentation (hard gate in v0.2, configurable gates in v0.3)
+  if grep -q "Configurable Gate System\|Hard Confirmation Gate" "$PROJECT_DIR/skills/ocat/SKILL.md"; then
+    pass "Gate system documented in SKILL.md"
   else
     fail "Confirmation gate missing from SKILL.md"
   fi
