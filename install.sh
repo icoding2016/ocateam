@@ -244,13 +244,24 @@ print_usage() {
   echo "Examples:"
   echo "  $0 --global                           # Install for all projects"
   echo "  $0 --project ~/code/my-app            # Install for one project"
+  echo "  $0 --project ~/code/my-app --permission-mode auto  # Install + set permission mode"
   echo "  $0 --uninstall --global               # Remove global installation"
   echo "  $0 --uninstall --project ~/code/my-app # Remove from project"
+  echo ""
+  echo "Permission modes:"
+  echo "  auto       - Full auto-approval (bash/edit: allow, no prompts)"
+  echo "  balanced   - Granular bash patterns, read-only tools auto-allowed (default)"
+  echo "  strict     - Require approval for bash and edit"
+  echo ""
+  echo "To change permission mode after install:"
+  echo "  $0 --project . --permission-mode auto   # Sync config only"
+  echo "  # OR manually edit .ocat.json + opencode.json"
 }
 
 # Parse arguments
 UNINSTALL=false
 MODE=""
+PERMISSION_MODE_FLAG=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -267,6 +278,22 @@ while [[ $# -gt 0 ]]; do
       MODE="project"
       PROJECT_PATH="$2"
       shift 2
+      ;;
+    --permission-mode)
+      if [[ -z "${2:-}" ]]; then
+        err "--permission-mode requires a value: auto, strict, or balanced"
+        exit 1
+      fi
+      case "$2" in
+        auto|strict|balanced)
+          PERMISSION_MODE_FLAG="$2"
+          shift 2
+          ;;
+        *)
+          err "Invalid --permission-mode: $2 (use: auto, strict, or balanced)"
+          exit 1
+          ;;
+      esac
       ;;
     --uninstall)
       UNINSTALL=true
@@ -297,6 +324,26 @@ fi
 if [ "$MODE" = "project" ] && [ -z "${PROJECT_PATH:-}" ]; then
   err "--project requires a path argument."
   exit 1
+fi
+
+# If --permission-mode is given, sync it to .ocat.json first
+if [ -n "$PERMISSION_MODE_FLAG" ]; then
+  if [ "$MODE" != "project" ] || [ -z "${PROJECT_PATH:-}" ]; then
+    err "--permission-mode requires --project <path>"
+    exit 1
+  fi
+  ocat_json="$PROJECT_PATH/.ocat.json"
+  if [ -f "$ocat_json" ]; then
+    jq ".permission_mode = \"$PERMISSION_MODE_FLAG\"" "$ocat_json" > "${ocat_json}.tmp" 2>/dev/null && \
+      mv "${ocat_json}.tmp" "$ocat_json" && \
+      log "Updated permission_mode → $PERMISSION_MODE_FLAG in .ocat.json" || \
+      warn "Failed to update .ocat.json (jq required)"
+  else
+    cat > "$ocat_json" << EOF
+{ "permission_mode": "$PERMISSION_MODE_FLAG" }
+EOF
+    log "Created .ocat.json with permission_mode → $PERMISSION_MODE_FLAG"
+  fi
 fi
 
 if $UNINSTALL; then

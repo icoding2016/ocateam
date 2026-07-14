@@ -124,7 +124,28 @@ OCATeam 使用两个配置文件：
 | `balanced` | 细粒度 bash 规则（grep/cat/find/ls/git/echo/cp/file 自动允许，其他需确认） | 正常开发（**默认**） |
 | `auto` | `bash: allow`，`edit: allow` | 可信赖的快速工作流 |
 
-设置 `permission_mode` 为 `strict` 或 `auto` 时，安装器会自动生成对应的 `opencode.json` 覆盖。`balanced` 模式下使用 agent 内置的默认配置即可。
+切换权限模式有两种方式：
+
+**方式一 — 自动（推荐）：**
+```bash
+# 安装时指定：
+./install.sh --project ~/code/my-app --permission-mode auto
+
+# 安装后切换：
+./install.sh --project . --permission-mode strict
+```
+一条命令同时更新 `.ocat.json` 和 `opencode.json`，无需重装。
+
+**方式二 — 手动：**
+```bash
+# 编辑 .ocat.json 修改 permission_mode:
+#   "permission_mode": "auto"
+
+# 然后编辑 opencode.json 添加对应覆盖：
+#   { "agent": { "ocat-orchestrator": { "permission": { "bash": "allow", "edit": "allow" } } } }
+```
+
+**注意：** OpenCode 读取 `opencode.json` 中的权限覆盖（不直接读 `.ocat.json`）。安装器负责把 `.ocat.json` 的 `permission_mode` 翻译成 `opencode.json` 中的 agent 权限覆盖。`balanced` 模式使用 agent 内置默认配置，无需覆盖。
 
 ### 审查上限
 

@@ -124,7 +124,33 @@ The orchestrator has three permission profiles, controlled by `permission_mode` 
 | `balanced` | Granular bash patterns (grep/cat/find/ls/git/echo/cp/file auto-allowed, other commands prompt) | Normal development (**default**) |
 | `auto` | `bash: allow`, `edit: allow` | Trusted, fast-paced workflows |
 
-The installer generates the corresponding `opencode.json` override automatically when you set `permission_mode` to `strict` or `auto`. In `balanced` mode, the agent's built-in defaults are sufficient.
+To change the permission mode, use **either** method:
+
+**Method 1 — Automated (recommended):**
+```bash
+# During initial install:
+./install.sh --project ~/code/my-app --permission-mode auto
+
+# After install, to switch modes:
+./install.sh --project . --permission-mode strict
+```
+
+This updates `.ocat.json` and generates the `opencode.json` override in one step.
+No full re-install needed — it only syncs the configuration.
+
+**Method 2 — Manual:**
+```bash
+# Edit .ocat.json and change permission_mode:
+#   "permission_mode": "auto"
+
+# Then edit opencode.json to add the corresponding override:
+#   { "agent": { "ocat-orchestrator": { "permission": { "bash": "allow", "edit": "allow" } } } }
+```
+
+Both files are in the project root. The manual approach gives you full control.
+
+**Note for `auto` and `strict` modes:**
+OpenCode reads permission overrides from `opencode.json` (not `.ocat.json`). The installer bridges the gap by reading `.ocat.json`'s `permission_mode` and writing the corresponding override into `opencode.json`. In `balanced` mode, the agent's built-in defaults are sufficient and no override is needed.
 
 ### Review Limit
 

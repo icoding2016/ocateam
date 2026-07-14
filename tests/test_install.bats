@@ -229,3 +229,42 @@ JSON
   # agent field should NOT exist — jq returns non-zero for null
   ! jq -e '.agent' "$TEST_PROJECT/opencode.json" > /dev/null
 }
+
+@test "perm: --permission-mode auto creates .ocat.json + override" {
+  run run_project --project "$TEST_PROJECT" --permission-mode auto
+  [ "$status" -eq 0 ]
+  # .ocat.json should be created with permission_mode: auto
+  [ -f "$TEST_PROJECT/.ocat.json" ]
+  jq -e '.permission_mode == "auto"' "$TEST_PROJECT/.ocat.json"
+  # opencode.json should have the override
+  jq -e '.agent["ocat-orchestrator"].permission.bash == "allow"' "$TEST_PROJECT/opencode.json"
+}
+
+@test "perm: --permission-mode updates existing .ocat.json" {
+  # Pre-seed with strict
+  cat > "$TEST_PROJECT/.ocat.json" << 'JSON'
+{ "permission_mode": "strict" }
+JSON
+  # Switch to auto via --permission-mode
+  run run_project --project "$TEST_PROJECT" --permission-mode auto
+  [ "$status" -eq 0 ]
+  # .ocat.json should now have auto
+  jq -e '.permission_mode == "auto"' "$TEST_PROJECT/.ocat.json"
+  # opencode.json should match
+  jq -e '.agent["ocat-orchestrator"].permission.bash == "allow"' "$TEST_PROJECT/opencode.json"
+}
+
+@test "perm: --permission-mode requires --project" {
+  run bash "$INSTALL_SCRIPT" --permission-mode auto
+  [ "$status" -ne 0 ]
+}
+
+@test "perm: --permission-mode rejects invalid value" {
+  run run_project --project "$TEST_PROJECT" --permission-mode invalid
+  [ "$status" -ne 0 ]
+}
+
+@test "perm: --permission-mode without value prints error" {
+  run run_project --project "$TEST_PROJECT" --permission-mode
+  [ "$status" -ne 0 ]
+}
