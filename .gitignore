@@ -4,6 +4,9 @@
 # Project-local OpenCode config (per-machine, never committed)
 .opencode/
 
+# Generated opencode.json — run ./install.sh --project . to create
+opencode.json
+
 # Editor / OS
 .DS_Store
 *.swp
