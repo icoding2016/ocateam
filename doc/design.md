@@ -688,6 +688,8 @@ Replace `bash: ask` with granular command-pattern permissions on the orchestrato
 | `echo *` | `allow` | Logging and status output |
 | `date *` | `allow` | Timestamps for logging |
 | `mkdir *` | `allow` | Creating board directory structure |
+| `cp *` | `allow` | File copying (deploy, sync board files) |
+| `file *` | `allow` | File type detection |
 | `git *` | `allow` | All git operations (status/diff/log/add/commit) — essential to workflow |
 | `which *` | `allow` | System utility location |
 | `*` (other) | `ask` | Potentially dangerous commands still require approval |
@@ -700,14 +702,14 @@ Also explicitly set read-only tool permissions:
 | `glob` | `allow` | File globbing — already default `allow` |
 | `grep` | `allow` | Content search — already default `allow` |
 | `list` | `allow` | Directory listing — already default `allow` |
-| `edit` | `ask` | Keep safety valve — orchestrator should not edit code |
+| `edit` | `allow` | Board file updates + logging — orchestrator needs to write progress documents; instructions already forbid code editing |
 | `webfetch` | `allow` | Web research for context |
 | `websearch` | `allow` | Web search for context |
 
 **Rationale:**
 - The orchestrator is a **coordination agent**, not an implementation agent. Its bash usage is limited to logging, git operations, and read-only file inspection.
 - The dedicated tools (`read`, `glob`, `grep`, `list`) are already default `allow` — no prompts occur for them.
-- `edit: ask` remains as a safety net — the orchestrator's instructions already forbid direct code editing, so edit prompts should rarely fire.
+- `edit: allow` — the orchestrator writes board files and delivery documents; its instructions already forbid direct code editing, so risk is minimal.
 - Pattern-based `bash` rules eliminate the most common interruption source while keeping a catch-all `ask` for unexpected/high-risk commands.
 
 **User-configurable overrides:**

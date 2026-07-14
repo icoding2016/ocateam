@@ -57,21 +57,88 @@ opencode my-project/
 
 ## 工作流阶段
 
-| 阶段 | 负责人 | 产出物 |
-|------|--------|--------|
-| 0: 需求分析 | 协调者 | 明确的需求文档（主面板） |
-| 1: 设计 | 架构师 → 审查者 | 设计文档，已审查通过 |
-| 2: 实现 | 开发者 → 审查者 | 代码 + 测试，审查循环把关 |
-| 3: 测试 | 开发者 → 审查者 | 测试结果 + 修复，覆盖率验证 |
-| 4: 质量门 | 审查者 | 对照原始需求的最终裁决 |
+OCATeam 将交付组织为多个阶段，每个阶段后设有**强制或可配置的人工审批门**：
 
-每个实现任务都经过**实现/改进 → 审查**循环（最多 3 轮迭代后升级给用户）。
+| 阶段 | 负责人 | 产出物 | 门控 |
+|------|--------|--------|------|
+| 0: 需求面试 | 协调者 | 需求文档 (`.boards/.../requirements.md`) | 🔒 强制审批 |
+| 1: 系统设计 + 交付计划 | 架构师 → 审查者 + 协调者 | 设计文档 + 多阶段交付计划 | 🔒 强制审批 |
+| 2: 迭代交付（N 个阶段） | 开发者 → 审查者（每阶段） | 每个阶段：实现代码 + 测试 + 审查结论 | 🔓 可配置（默认需审批）|
+| 3: 最终交付 | 开发者 + 审查者 | 集成测试 + 最终审查结论 | 🔒 强制审批 |
+
+### 每阶段活动
+
+Phase 2 的每个交付阶段包含两个嵌套循环：
+
+1. **开发者自主循环**：`实现 → 测试 → 修复` — 协调者不干预
+2. **审查者循环**（最多 N 轮）：`审查 → [驳回] 修复 → 测试 → 重新审查` — N 通过 `.ocat.json` 配置
+
+每阶段结束后：检查阶段门控（`.ocat.json.gates.delivery_stage_approval`）→ 人工审批或自动继续。
 
 ## 配置
 
-### Agent 激活 (`.ocat.json`)
+OCATeam 使用两个配置文件：
 
-按项目安装时会自动创建 `.ocat.json` 来控制哪些 subagent 处于激活状态：
+| 文件 | 用途 |
+|------|------|
+| `.ocat.json` | OCATeam 工作流配置（门控、权限模式、审查限制） |
+| `opencode.json` | 标准 OpenCode 配置（模型覆盖、agent 权限） |
+
+### `.ocat.json` — 工作流控制
+
+```json
+{
+  "version": "0.3.0",
+  "active_agents": ["architect", "developer", "reviewer", "explorer"],
+  "permission_mode": "balanced",
+  "gates": {
+    "phase_0_requirements": "mandatory",
+    "phase_1_design": "mandatory",
+    "delivery_stage_approval": true,
+    "phase_3_final": "mandatory"
+  },
+  "review": {
+    "max_iterations": 3
+  }
+}
+```
+
+### 门控值语义
+
+| 值 | 行为 |
+|-------|----------|
+| `"mandatory"` | 不可关闭。协调者必须调用 `confirm_with_user()`。 |
+| `true` | 默认启用，可设为 `false`。 |
+| `false` | 默认禁用，可设为 `true`。 |
+
+- Phase 0、1、3 的门控始终为强制（需求/设计/最终交付太关键，不可跳过）
+- `delivery_stage_approval` 控制每阶段的人工审批（默认：需要）
+
+### 权限模式
+
+协调者有三级权限配置，通过 `.ocat.json` 的 `permission_mode` 控制：
+
+| 模式 | 协调者权限 | 适用场景 |
+|------|------------|----------|
+| `strict` | `bash: ask`，`edit: ask` | 高安全环境 |
+| `balanced` | 细粒度 bash 规则（grep/cat/find/ls/git/echo/cp/file 自动允许，其他需确认） | 正常开发（**默认**） |
+| `auto` | `bash: allow`，`edit: allow` | 可信赖的快速工作流 |
+
+设置 `permission_mode` 为 `strict` 或 `auto` 时，安装器会自动生成对应的 `opencode.json` 覆盖。`balanced` 模式下使用 agent 内置的默认配置即可。
+
+### 审查上限
+
+```json
+{
+  "review": {
+    "max_iterations": 3
+  }
+}
+```
+
+控制每个阶段允许的审查→修复循环上限。默认：3 轮。超过后升级给用户处理。
+
+### Agent 激活
 
 ```json
 {
@@ -94,7 +161,7 @@ opencode my-project/
 }
 ```
 
-> **为什么有两个配置文件？** `opencode.json` 受 OpenCode schema 校验，会拒绝未知的 key。OCATeam 的配置放在独立的 `.ocat.json` 中，避免 schema 冲突。
+> **为什么有两个配置文件？** `opencode.json` 受 OpenCode schema 校验，会拒绝未知的 key。OCATeam 的配置放在独立的 `.ocat.json` 中，避免 schema 冲突。安装器通过 `opencode.json` 的 `agent.<name>.permission` 字段处理权限模式覆盖，该字段是 OpenCode 原生支持的。
 
 ## 项目结构
 

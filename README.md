@@ -57,21 +57,88 @@ User → Orchestrator (primary agent)
 
 ## Workflow Phases
 
-| Phase | Owner | Deliverable |
-|-------|-------|-------------|
-| 0: Requirements | Orchestrator | Clarified requirements in master board |
-| 1: Design | Architect → Reviewer | Design doc, reviewed & approved |
-| 2: Implementation | Developer → Reviewer | Code + tests, gated by review cycle |
-| 3: Testing | Developer → Reviewer | Test results + fixes, coverage verified |
-| 4: Quality Gate | Reviewer | Final verdict against original requirements |
+OCATeam organizes delivery into distinct phases with **mandatory or configurable human approval gates** after each:
 
-Each implementation task runs through an **Implement/Refine → Review** cycle (max 3 iterations before escalation to user).
+| Phase | Owner | Deliverable | Gate |
+|-------|-------|-------------|------|
+| 0: Requirements Interview | Orchestrator | Requirements doc (`.boards/.../requirements.md`) | 🔒 Mandatory approval |
+| 1: System Design + Delivery Plan | Architect → Reviewer + Orchestrator | Design doc + multi-stage delivery plan | 🔒 Mandatory approval |
+| 2: Iterative Delivery (N Stages) | Developer → Reviewer (per stage) | Each stage: implemented code + tests + review verdict | 🔓 Configurable (default: required) |
+| 3: Final Delivery | Developer + Reviewer | Integration tests + final review verdict | 🔒 Mandatory approval |
+
+### Per-Stage Activity
+
+Each delivery stage in Phase 2 follows two nested loops:
+
+1. **Developer Loop** (autonomous): `implement → test → fix` — no orchestrator intervention
+2. **Reviewer Loop** (max N iterations): `review → [reject] fix → test → re-review` — N configured via `.ocat.json`
+
+After each stage: Stage gate (check `.ocat.json.gates.delivery_stage_approval`) → human approval or auto-proceed.
 
 ## Configuration
 
-### Agent Activation (`.ocat.json`)
+OCATeam uses two config files:
 
-Per-project installs scaffold an `.ocat.json` to control which subagents are active:
+| File | Purpose |
+|------|---------|
+| `.ocat.json` | OCATeam workflow config (gates, permission mode, review limits) |
+| `opencode.json` | Standard OpenCode config (model overrides, agent permissions) |
+
+### `.ocat.json` — Workflow Control
+
+```json
+{
+  "version": "0.3.0",
+  "active_agents": ["architect", "developer", "reviewer", "explorer"],
+  "permission_mode": "balanced",
+  "gates": {
+    "phase_0_requirements": "mandatory",
+    "phase_1_design": "mandatory",
+    "delivery_stage_approval": true,
+    "phase_3_final": "mandatory"
+  },
+  "review": {
+    "max_iterations": 3
+  }
+}
+```
+
+### Gate Values
+
+| Value | Behavior |
+|-------|----------|
+| `"mandatory"` | Cannot be disabled. Orchestrator MUST call `confirm_with_user()`. |
+| `true` | Enabled by default, can be set to `false`. |
+| `false` | Disabled by default, can be set to `true`. |
+
+- Phase 0, 1, 3 gates are always mandatory (requirements/design/final delivery are too critical to bypass)
+- `delivery_stage_approval` controls per-stage human approval (default: required)
+
+### Permission Modes
+
+The orchestrator has three permission profiles, controlled by `permission_mode` in `.ocat.json`:
+
+| Mode | Orchestrator Permission | Use Case |
+|------|------------------------|----------|
+| `strict` | `bash: ask`, `edit: ask` | High-security environments |
+| `balanced` | Granular bash patterns (grep/cat/find/ls/git/echo/cp/file auto-allowed, other commands prompt) | Normal development (**default**) |
+| `auto` | `bash: allow`, `edit: allow` | Trusted, fast-paced workflows |
+
+The installer generates the corresponding `opencode.json` override automatically when you set `permission_mode` to `strict` or `auto`. In `balanced` mode, the agent's built-in defaults are sufficient.
+
+### Review Limit
+
+```json
+{
+  "review": {
+    "max_iterations": 3
+  }
+}
+```
+
+Controls how many review→fix cycles are allowed per stage before escalation. Default: 3.
+
+### Agent Activation
 
 ```json
 {
@@ -94,7 +161,7 @@ Override agent models in the standard OpenCode config:
 }
 ```
 
-> **Why two config files?** `opencode.json` is validated against OpenCode's schema, which rejects unknown keys. OCATeam config lives in `.ocat.json` to avoid schema conflicts.
+> **Why two config files?** `opencode.json` is validated against OpenCode's schema, which rejects unknown keys. OCATeam config lives in `.ocat.json` to avoid schema conflicts. The installer handles permission mode overrides via `opencode.json`'s `agent.<name>.permission` field, which is OpenCode-native.
 
 ## Project Structure
 

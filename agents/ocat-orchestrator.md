@@ -9,7 +9,7 @@ permission:
   glob: allow
   grep: allow
   list: allow
-  edit: ask
+  edit: allow
   bash:
     "grep *": allow
     "find *": allow
@@ -18,6 +18,8 @@ permission:
     "echo *": allow
     "date *": allow
     "mkdir *": allow
+    "cp *": allow
+    "file *": allow
     "git *": allow
     "which *": allow
     "*": ask
