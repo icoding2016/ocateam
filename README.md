@@ -33,6 +33,18 @@ cd ocateam
 ./install.sh --project ~/code/my-app
 ```
 
+### 2. Project Setup
+
+If you cloned an existing OCATeam project (one that has `.ocat.json` in its root):
+
+```bash
+cd my-project
+./install.sh --project .                       # Install agents + skill
+./install.sh --project . --permission-mode auto # Optional: switch to auto mode
+```
+
+The installer copies agents to `.opencode/agents/`, the skill to `.opencode/skills/`, and generates `opencode.json` (gitignored) with any permission mode overrides.
+
 ### 2. Use
 
 ```bash
