@@ -185,3 +185,47 @@ run_project() {
   run bash "$INSTALL_SCRIPT" --project
   [ "$status" -ne 0 ]
 }
+
+# ── Permission Mode Tests ─────────────────────────────────
+
+@test "perm: auto mode generates opencode.json override" {
+  # Pre-seed .ocat.json with permission_mode: auto
+  cat > "$TEST_PROJECT/.ocat.json" << 'JSON'
+{
+  "permission_mode": "auto"
+}
+JSON
+  run run_project --project "$TEST_PROJECT"
+  [ "$status" -eq 0 ]
+  # opencode.json should have the auto override
+  [ -f "$TEST_PROJECT/opencode.json" ]
+  # Verify bash is allow
+  jq -e '.agent["ocat-orchestrator"].permission.bash == "allow"' "$TEST_PROJECT/opencode.json"
+}
+
+@test "perm: strict mode generates opencode.json override" {
+  cat > "$TEST_PROJECT/.ocat.json" << 'JSON'
+{
+  "permission_mode": "strict"
+}
+JSON
+  run run_project --project "$TEST_PROJECT"
+  [ "$status" -eq 0 ]
+  [ -f "$TEST_PROJECT/opencode.json" ]
+  # Verify bash is ask
+  jq -e '.agent["ocat-orchestrator"].permission.bash == "ask"' "$TEST_PROJECT/opencode.json"
+}
+
+@test "perm: balanced mode does not generate override" {
+  cat > "$TEST_PROJECT/.ocat.json" << 'JSON'
+{
+  "permission_mode": "balanced"
+}
+JSON
+  run run_project --project "$TEST_PROJECT"
+  [ "$status" -eq 0 ]
+  # opencode.json should exist (scaffold) but WITHOUT agent override
+  [ -f "$TEST_PROJECT/opencode.json" ]
+  # agent field should NOT exist — jq returns non-zero for null
+  ! jq -e '.agent' "$TEST_PROJECT/opencode.json" > /dev/null
+}
