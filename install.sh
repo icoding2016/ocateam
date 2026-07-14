@@ -259,6 +259,11 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --project)
+      if [[ -z "${2:-}" ]]; then
+        err "--project requires a path argument"
+        err "  Usage: ./install.sh --project <path>"
+        exit 1
+      fi
       MODE="project"
       PROJECT_PATH="$2"
       shift 2
