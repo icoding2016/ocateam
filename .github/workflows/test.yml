@@ -6,21 +6,41 @@ on:
   pull_request:
     branches: [main]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+          cache: 'pip'
       - name: Install PyYAML
         run: pip install pyyaml
       - name: Run static validation
         run: make validate
+      - name: Quick smoke test
+        run: bash install.sh --help
 
   install-test:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
-      - name: Install bats
-        run: npm install -g bats
-      - name: Run installer tests
+      - name: Install bats (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y bats
+      - name: Test install.sh (Linux)
+        if: runner.os == 'Linux'
         run: make install-test
+      - name: Test install.ps1 (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Invoke-Pester -Script tests/test_install.ps1 -Output Detailed
