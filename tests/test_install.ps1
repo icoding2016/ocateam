@@ -7,71 +7,67 @@
   Run with: Invoke-Pester -Script tests/test_install.ps1
 #>
 
-# Discover the PowerShell executable (powershell.exe on Windows, pwsh on Linux)
-$PSExecutable = if (Get-Command powershell.exe -ErrorAction SilentlyContinue) {
-    "powershell.exe"
-}
-else {
-    "pwsh"
-}
-
-# ── Helper: invoke install.ps1 in a child process ──────────
-# Runs the installer in a subprocess so that 'exit N' inside
-# install.ps1 does not kill the Pester test runner.
-function Invoke-Installer {
-    param(
-        [string]$Arguments,
-        [string]$AppDataOverride
-    )
-
-    # Build a script block that sets APPDATA then runs the installer
-    $innerScript = "`$env:APPDATA = '$AppDataOverride'; & '$InstallScript' $Arguments"
-    $encoded = [Convert]::ToBase64String(
-        [System.Text.Encoding]::Unicode.GetBytes($innerScript)
-    )
-
-    $output = & $PSExecutable -NoProfile -EncodedCommand $encoded 2>&1 | Out-String
-    $exitCode = $LASTEXITCODE
-
-    return @{
-        ExitCode = $exitCode
-        Output   = $output
-    }
-}
-
-# ── Helper: invoke install.ps1 for project tests ───────────
-# Project tests don't override APPDATA, but we still run in a
-# subprocess to capture exit codes safely.
-function Invoke-InstallerProject {
-    param([string]$Arguments)
-
-    $encoded = [Convert]::ToBase64String(
-        [System.Text.Encoding]::Unicode.GetBytes(
-            "& '$InstallScript' $Arguments"
-        )
-    )
-
-    $output = & $PSExecutable -NoProfile -EncodedCommand $encoded 2>&1 | Out-String
-    $exitCode = $LASTEXITCODE
-
-    return @{
-        ExitCode = $exitCode
-        Output   = $output
-    }
-}
-
-# ════════════════════════════════════════════════════════════
-#  TESTS
-# ════════════════════════════════════════════════════════════
-
 Describe "install.ps1" {
 
     BeforeAll {
+        # Discover the PowerShell executable (powershell.exe on Windows, pwsh on Linux)
+        $PSExecutable = if (Get-Command powershell.exe -ErrorAction SilentlyContinue) {
+            "powershell.exe"
+        }
+        else {
+            "pwsh"
+        }
+
         $ScriptDir     = Split-Path -Parent $PSCommandPath
-        $InstallScript = Join-Path $ScriptDir "..\install.ps1" -Resolve
-        $AgentsSrc     = Join-Path $ScriptDir "..\agents"
-        $SkillSrc      = Join-Path $ScriptDir "..\skills\ocat\SKILL.md"
-        $Snippet       = Join-Path $ScriptDir "..\scaffold\opencode.json.snippet"
+        $InstallScript = Resolve-Path (Join-Path $ScriptDir "..\install.ps1")
+        $AgentsSrc     = Resolve-Path (Join-Path $ScriptDir "..\agents")
+        $SkillSrc      = Resolve-Path (Join-Path $ScriptDir "..\skills\ocat\SKILL.md")
+        $Snippet       = Resolve-Path (Join-Path $ScriptDir "..\scaffold\opencode.json.snippet")
+
+        # ── Helper: invoke install.ps1 in a child process ──────────
+        # Runs the installer in a subprocess so that 'exit N' inside
+        # install.ps1 does not kill the Pester test runner.
+        function Invoke-Installer {
+            param(
+                [string]$Arguments,
+                [string]$AppDataOverride
+            )
+
+            # Build a script block that sets APPDATA then runs the installer
+            $innerScript = "`$env:APPDATA = '$AppDataOverride'; & '$InstallScript' $Arguments"
+            $encoded = [Convert]::ToBase64String(
+                [System.Text.Encoding]::Unicode.GetBytes($innerScript)
+            )
+
+            $output = & $PSExecutable -NoProfile -EncodedCommand $encoded 2>&1 | Out-String
+            $exitCode = $LASTEXITCODE
+
+            return @{
+                ExitCode = $exitCode
+                Output   = $output
+            }
+        }
+
+        # ── Helper: invoke install.ps1 for project tests ───────────
+        # Project tests don't override APPDATA, but we still run in a
+        # subprocess to capture exit codes safely.
+        function Invoke-InstallerProject {
+            param([string]$Arguments)
+
+            $encoded = [Convert]::ToBase64String(
+                [System.Text.Encoding]::Unicode.GetBytes(
+                    "& '$InstallScript' $Arguments"
+                )
+            )
+
+            $output = & $PSExecutable -NoProfile -EncodedCommand $encoded 2>&1 | Out-String
+            $exitCode = $LASTEXITCODE
+
+            return @{
+                ExitCode = $exitCode
+                Output   = $output
+            }
+        }
 
         # Sanity checks (mirror bats setup)
         $InstallScript | Should -Exist
