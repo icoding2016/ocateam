@@ -154,7 +154,7 @@ function Install-Project {
     $gitignorePath = "$ProjectPath/.gitignore"
     if (Test-Path $gitignorePath) {
         $gitignoreContent = Get-Content $gitignorePath -Raw -ErrorAction SilentlyContinue
-        if (-not ($gitignoreContent -match '(?m)^\.boards/$')) {
+        if (-not ($gitignoreContent -match '(?m)^\.boards/\r?$')) {
             Add-Content -Path $gitignorePath -Value "`n.boards/" -NoNewline:$false
             Write-Log "Added .boards/ to .gitignore"
         }
