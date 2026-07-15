@@ -37,9 +37,7 @@ param(
     [Alias('v')]
     [switch]$Version,
     [Alias('h')]
-    [switch]$Help,
-    [ValidateSet('auto', 'strict', 'balanced')]
-    [string]$PermissionMode
+    [switch]$Help
 )
 
 $ErrorActionPreference = "Continue"
@@ -152,74 +150,6 @@ function Install-Project {
         Write-Warn ".ocat.json already exists — skipped scaffold"
     }
 
-    # Apply permission_mode override (generates a sidecar file, warns about manual merge)
-    $ocatJsonPath = "$ProjectPath/.ocat.json"
-    if (Test-Path $ocatJsonPath) {
-        try {
-            $ocatRaw = Get-Content $ocatJsonPath -Raw
-            $ocatObj = $ocatRaw | ConvertFrom-Json
-            $permMode = if ($ocatObj.permission_mode) { $ocatObj.permission_mode } else { "balanced" }
-
-            if ($permMode -eq "auto") {
-                $overrideDest = "$ProjectPath/.opencode/permission_override.json"
-                New-Item -ItemType Directory -Force -Path "$ProjectPath/.opencode" | Out-Null
-                $json = @'
-{
-  "agent": {
-    "ocat-orchestrator": {
-      "permission": {
-        "bash": "allow",
-        "edit": "allow",
-        "read": "allow",
-        "glob": "allow",
-        "grep": "allow",
-        "list": "allow",
-        "webfetch": "allow",
-        "websearch": "allow"
-      }
-    }
-  }
-}
-'@
-                $json | Set-Content -Path $overrideDest -NoNewline
-                Write-Log "permission_mode=auto: wrote override to $overrideDest"
-                Write-Warn "  PowerShell cannot auto-merge JSON. To apply 'auto' permissions:"
-                Write-Warn "    Merge $overrideDest into $ProjectPath/opencode.json"
-                Write-Warn "    or run: ./install.sh --project $(Split-Path $ProjectPath -Leaf) (WSL)"
-            }
-            elseif ($permMode -eq "strict") {
-                $overrideDest = "$ProjectPath/.opencode/permission_override.json"
-                New-Item -ItemType Directory -Force -Path "$ProjectPath/.opencode" | Out-Null
-                $json = @'
-{
-  "agent": {
-    "ocat-orchestrator": {
-      "permission": {
-        "bash": "ask",
-        "edit": "ask",
-        "read": "allow",
-        "glob": "allow",
-        "grep": "allow",
-        "list": "allow",
-        "webfetch": "allow",
-        "websearch": "allow"
-      }
-    }
-  }
-}
-'@
-                $json | Set-Content -Path $overrideDest -NoNewline
-                Write-Log "permission_mode=strict: wrote override to $overrideDest"
-                Write-Warn "  PowerShell cannot auto-merge JSON. To apply 'strict' permissions:"
-                Write-Warn "    Merge $overrideDest into $ProjectPath/opencode.json"
-                Write-Warn "    or run: ./install.sh --project $(Split-Path $ProjectPath -Leaf) (WSL)"
-            }
-        }
-        catch {
-            Write-Warn "Failed to parse .ocat.json — skipping permission_mode override"
-        }
-    }
-
     # Ensure .boards/ is gitignored (runtime state, never committed)
     $gitignorePath = "$ProjectPath/.gitignore"
     if (Test-Path $gitignorePath) {
@@ -287,7 +217,7 @@ function Show-Usage {
     $ver = Get-OCATeamVersion
     Write-Host "OCATeam v$ver"
     Write-Host ""
-    Write-Host "Usage: .\install.ps1 [-Global | -Project <path>] [-Uninstall] [-PermissionMode auto|strict|balanced]"
+    Write-Host "Usage: .\install.ps1 [-Global | -Project <path>] [-Uninstall]"
     Write-Host "       .\install.ps1 -Version"
     Write-Host "       .\install.ps1 -Help"
     Write-Host ""
@@ -295,22 +225,11 @@ function Show-Usage {
     Write-Host "  -Global              Install OCATeam globally (`$env:APPDATA\opencode\)"
     Write-Host "  -Project <path>      Install OCATeam into a specific project"
     Write-Host "  -Uninstall           Remove a previous installation (use with -Global or -Project)"
-    Write-Host "  -PermissionMode <m>  Set permission mode: auto, strict, or balanced (requires -Project)"
     Write-Host "  -Version             Print OCATeam version"
-    Write-Host ""
-    Write-Host "Permission modes:"
-    Write-Host "  auto       - Full auto-approval (bash/edit: allow, no prompts)"
-    Write-Host "  balanced   - Granular bash patterns (default)"
-    Write-Host "  strict     - Require approval for bash and edit"
-    Write-Host ""
-    Write-Host "To change permission mode after install:"
-    Write-Host "  .\install.ps1 -Project . -PermissionMode auto  # Sync config only"
-    Write-Host "  # OR manually edit .ocat.json + opencode.json"
     Write-Host ""
     Write-Host "Examples:"
     Write-Host "  .\install.ps1 -Global"
     Write-Host "  .\install.ps1 -Project C:\code\my-app"
-    Write-Host "  .\install.ps1 -Project C:\code\my-app -PermissionMode auto"
     Write-Host "  .\install.ps1 -Uninstall -Global"
     Write-Host "  .\install.ps1 -Uninstall -Project C:\code\my-app"
 }
@@ -346,89 +265,6 @@ if (-not $Global -and -not $Project) {
 if ($Project -and $Project.Trim() -eq "") {
     Write-Err "-Project requires a path argument."
     exit 1
-}
-
-# Handle -PermissionMode: update .ocat.json and generate opencode.json override
-if ($PermissionMode) {
-    if (-not $Project) {
-        Write-Err "-PermissionMode requires -Project <path>"
-        exit 1
-    }
-    $ocatJsonPath = "$Project\.ocat.json"
-    if (Test-Path $ocatJsonPath) {
-        try {
-            $content = Get-Content $ocatJsonPath -Raw | ConvertFrom-Json
-            $content | Add-Member -NotePropertyName 'permission_mode' -NotePropertyValue $PermissionMode -Force
-            $content | ConvertTo-Json -Depth 10 | Set-Content $ocatJsonPath -NoNewline
-            Write-Log "Updated permission_mode → $PermissionMode in .ocat.json"
-        }
-        catch {
-            Write-Err "Failed to update .ocat.json"
-            exit 1
-        }
-    }
-    else {
-        $json = @{ permission_mode = $PermissionMode } | ConvertTo-Json
-        $json | Set-Content $ocatJsonPath -NoNewline
-        Write-Log "Created .ocat.json with permission_mode → $PermissionMode"
-    }
-    # Generate opencode.json override
-    $overrideContent = if ($PermissionMode -eq "auto") {
-        @'
-{
-  "agent": {
-    "ocat-orchestrator": {
-      "permission": {
-        "bash": "allow",
-        "edit": "allow",
-        "read": "allow",
-        "glob": "allow",
-        "grep": "allow",
-        "list": "allow",
-        "webfetch": "allow",
-        "websearch": "allow"
-      }
-    }
-  }
-}
-'@
-    }
-    elseif ($PermissionMode -eq "strict") {
-        @'
-{
-  "agent": {
-    "ocat-orchestrator": {
-      "permission": {
-        "bash": "ask",
-        "edit": "ask",
-        "read": "allow",
-        "glob": "allow",
-        "grep": "allow",
-        "list": "allow",
-        "webfetch": "allow",
-        "websearch": "allow"
-      }
-    }
-  }
-}
-'@
-    }
-    if ($overrideContent) {
-        $opencodeJsonPath = "$Project/opencode.json"
-        if (Test-Path $opencodeJsonPath) {
-            # Merge with existing opencode.json (simple string concatenation — basic but works)
-            $existing = Get-Content $opencodeJsonPath -Raw
-            $merged = $existing.TrimEnd("`r`n") + "`n," + $overrideContent.Substring(1).TrimStart()
-            # Remove trailing comma before closing brace
-            $merged = $merged -replace ',\s*\}', "`n}"
-            $merged | Set-Content $opencodeJsonPath -NoNewline
-            Write-Log "Merged permission_mode override into opencode.json"
-        }
-        else {
-            $overrideContent | Set-Content $opencodeJsonPath -NoNewline
-            Write-Log "Created opencode.json with permission_mode override"
-        }
-    }
 }
 
 # Dispatch

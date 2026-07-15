@@ -7,7 +7,6 @@
     "reviewer",
     "explorer"
   ],
-  "permission_mode": "auto",
   "gates": {
     "phase_0_requirements": "mandatory",
     "phase_1_design": "mandatory",

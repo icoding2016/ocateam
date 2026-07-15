@@ -154,7 +154,7 @@ OCATeam uses two configuration files at the project root, each with a distinct r
 
 **Key behaviors:**
 1. Load the ocat skill at session start for full workflow context
-2. Read `.ocat.json` for `active_agents`, `gates`, and `permission_mode`
+2. Read `.ocat.json` for `active_agents`, `gates`, and `review` settings
 3. **Phase 0 — PM**: Conduct requirements interview (§11.13), produce requirements doc
 4. **Phase 1 — Gatekeeper**: Review the Architect's design + delivery plan for **execution feasibility**
 5. **Phase 2 — Tracker**: Execute the delivery plan stage-by-stage, tracking progress, updating board files
@@ -624,176 +624,72 @@ Agent YAML frontmatter fields are **not** generic metadata — they are model op
 **Note on `options.thinking`:**
 The `options.thinking` field in agent frontmatter is OpenCode's mechanism for explicitly enabling thinking on models that require the Anthropic-format `{type: enabled, budgetTokens: N}` parameter. This is distinct from a simple `thinking:` string field and should only be used when the target model's provider SDK requires it. For OCATeam's current models (DeepSeek, GLM), thinking is enabled by default and no explicit config is needed.
 
-### 11.10 Permission Optimization for Long Workflows
+### 11.10 Permission Simplification
 
 **Problem:**
-During long-running development sessions, the ocat-orchestrator is frequently interrupted by permission prompts for low-risk, read-only shell commands like `grep`, `cat`, `find`, `ls`, `echo`, `git status`, etc. While `bash: ask` (the previous setting) is safe, it creates a poor UX — requiring manual approval for dozens of commands over the course of a multi-phase workflow.
+The earlier design (v0.2.0) introduced granular bash command patterns (e.g., `"grep *": allow`, `"ls *": allow`) in the orchestrator agent file, with a plan to support mode switching via `opencode.json` overrides. This had two flaws discovered in production:
 
-**OpenCode Permission System Analysis:**
+1. **Glob matching limitation**: OpenCode's permission patterns use standard glob semantics where `*` does NOT match the path separator `/`. Patterns like `"ls *"` only match `ls <simple-name>` but fail on `ls /path/to/file` — which is how real commands are written. The catch-all `"*": ask` always won in practice.
 
-OpenCode's permission system supports three action levels (`allow`, `ask`, `deny`) and two configuration modes (per-tool and per-pattern):
+2. **Agent file permissions are definitive**: OpenCode's agent files (`.md`) take full precedence over inline `agent.{name}.permission` in `opencode.json`. The assumed merge priority was:
+   ```
+   Agent file (lowest) → inline opencode.json → session runtime (highest)  ❌ WRONG
+   ```
+   The actual behavior is:
+   ```
+   Inline opencode.json (global config layer)
+     → highest priority: Agent file (.md) — permission is definitive here
+     → Session runtime (e.g. "always" clicks)
+   ```
+   Adding `"bash": "allow"` to `opencode.json` has **no effect** when an agent file exists — the agent file's `bash` permission always wins.
 
-| Level | Behavior |
-|-------|----------|
-| `allow` | Run without approval |
-| `ask` | Prompt user for approval |
-| `deny` | Block the action |
+**Decision — simplify to `bash: ask`:**
 
-For most tools (`bash`, `read`, `edit`, `glob`, `grep`, `list`, `task`, `skill`, etc.), the shorthand action applies to the entire tool. However, **`bash` supports an object syntax** with command-pattern-specific rules:
+The orchestrator agent file now uses a single-line bash permission:
 
 ```yaml
 permission:
-  bash:
-    "*": ask              # catch-all: prompt for approval
-    "grep *": allow       # auto-allow grep commands
-    "git status*": allow  # auto-allow git status
+  bash: ask
 ```
 
-Rules are evaluated by glob pattern matching against the parsed command string. **The last matching rule wins**, so the catch-all `"*"` should come first, with specific allow rules after.
+This is equivalent to `bash: { "*": ask }` — all bash commands prompt for approval. No granular patterns, no mode switching.
 
-**Permission merge priority** (from OpenCode source):
+**Why not keep granular patterns?**
 
-```
-Agent default permissions (lowest)
-  → merge
-User-configured permissions (in opencode.json)
-  → merge
-Session runtime permissions (highest)
-```
+| Attempted approach | Why it failed |
+|---|---|
+| `"ls *": allow` | Doesn't match `ls /path/with/slashes` (glob `*` excludes `/`) |
+| `"git *": allow` | Doesn't match `git commit -m "..."` (multi-word args break simple prefix match) |
+| Override via `opencode.json` | Agent file wins; inline config ignored |
 
-This means:
-1. Agent definitions (`.md` files) set baseline permissions
-2. Project `opencode.json` can override per-agent
-3. User's "always" clicks add runtime rules (non-persistent across restarts)
+**Auto-approve workflow:**
 
-**Research: "always" button behavior**
+Users who want less friction use OpenCode's built-in auto-approve:
 
-When the permission prompt appears and the user clicks "always":
-- Adds an `allow` rule for the session's `s.approved` array
-- Automatically batch-approves other pending requests matching the same pattern
-- **Does NOT persist across OpenCode restarts** — intentional design choice
+| Method | How |
+|---|---|
+| **CLI** | `opencode --auto` or `opencode run --auto "..."` |
+| **TUI** | `ctrl+p` → command palette → search "auto-approve" → toggle on |
 
-Therefore, "always" is not a reliable solution for recurring workflows. The proper fix is to configure the allowed patterns in the agent definition itself.
+Auto mode auto-approves all `ask` requests without prompting. Explicit `deny` rules are still enforced. The toggle is per-session (not persisted).
 
-**Decision:**
-
-Replace `bash: ask` with granular command-pattern permissions on the orchestrator:
-
-| Command Pattern | Policy | Rationale |
-|----------------|--------|-----------|
-| `grep *` | `allow` | Read-only content search |
-| `find *` | `allow` | Read-only file discovery |
-| `cat *` | `allow` | Read-only file viewing |
-| `ls *` | `allow` | Read-only directory listing |
-| `echo *` | `allow` | Logging and status output |
-| `date *` | `allow` | Timestamps for logging |
-| `mkdir *` | `allow` | Creating board directory structure |
-| `cp *` | `allow` | File copying (deploy, sync board files) |
-| `file *` | `allow` | File type detection |
-| `git *` | `allow` | All git operations (status/diff/log/add/commit) — essential to workflow |
-| `which *` | `allow` | System utility location |
-| `*` (other) | `ask` | Potentially dangerous commands still require approval |
-
-Also explicitly set read-only tool permissions:
-
-| Tool | Policy | Rationale |
-|------|--------|-----------|
-| `read` | `allow` | File reading — already default `allow` |
-| `glob` | `allow` | File globbing — already default `allow` |
-| `grep` | `allow` | Content search — already default `allow` |
-| `list` | `allow` | Directory listing — already default `allow` |
-| `edit` | `allow` | Board file updates + logging — orchestrator needs to write progress documents; instructions already forbid code editing |
-| `webfetch` | `allow` | Web research for context |
-| `websearch` | `allow` | Web search for context |
-
-**Rationale:**
-- The orchestrator is a **coordination agent**, not an implementation agent. Its bash usage is limited to logging, git operations, and read-only file inspection.
-- The dedicated tools (`read`, `glob`, `grep`, `list`) are already default `allow` — no prompts occur for them.
-- `edit: allow` — the orchestrator writes board files and delivery documents; its instructions already forbid direct code editing, so risk is minimal.
-- Pattern-based `bash` rules eliminate the most common interruption source while keeping a catch-all `ask` for unexpected/high-risk commands.
-
-**User-configurable overrides:**
-
-Users who want even less friction can further override in their project's `.opencode/opencode.json`:
-
-```json
-{
-  "agent": {
-    "ocat-orchestrator": {
-      "permission": {
-        "bash": "allow"
-      }
-    }
-  }
-}
-```
-
-Users who want more safety can add restrictions:
-
-```json
-{
-  "agent": {
-    "ocat-orchestrator": {
-      "permission": {
-        "bash": {
-          "git push*": "ask",
-          "git commit*": "ask"
-        }
-      }
-    }
-  }
-}
-```
-
-Project-level overrides are merged after agent defaults (higher priority), so specific overrides take effect while keeping the base patterns.
+For `opencode serve` + `opencode attach` setups, auto mode can be toggled in the TUI command palette after attaching.
 
 **Other agents remain unchanged:**
 
-| Agent | Permission | Rationale |
-|-------|-----------|-----------|
-| ocat-architect | `edit: allow`, `bash: deny` | Read-only design work |
-| ocat-developer | `edit: allow`, `bash: allow` | Full implementation access |
-| ocat-reviewer | `edit: deny`, `bash: deny` | Read-only review |
-| ocat-explorer | `edit: deny`, `bash: deny` | Read-only research |
+| Agent | Permission | Set in |
+|-------|-----------|--------|
+| ocat-orchestrator | `bash: ask` (this section) | Agent file |
+| ocat-architect | `edit: allow`, `bash: deny` | Agent file |
+| ocat-developer | `edit: allow`, `bash: allow` | Agent file |
+| ocat-reviewer | `edit: deny`, `bash: deny` | Agent file |
+| ocat-explorer | `edit: deny`, `bash: deny` | Agent file |
 
-### 11.10a Permission Mode Switching
+All subagent permissions are set directly in their agent files, which is the only reliable mechanism. The `opencode.json` no longer contains per-agent permission entries.
 
-While §11.10 defines granular bash patterns as the baseline (balanced mode), OpenCode supports **project-level permission overrides** via `opencode.json`. Combined with `.ocat.json`, the orchestrator can support a three-tier mode system:
+### 11.10a (Removed — superseded by §11.10)
 
-| Mode | Orchestrator Behavior | Use Case |
-|------|-----------------------|----------|
-| `strict` | `bash: ask` on all commands | High-security environments |
-| `balanced` | Granular patterns (current §11.10 default) | Normal development (recommended) |
-| `auto` | `bash: allow` + `edit: allow` | Trusted, fast-paced workflows |
-
-**Configuration via `.ocat.json`:**
-
-```json
-{
-  "permission_mode": "balanced"
-}
-```
-
-**Enforcement via `opencode.json`:** The installer generates the corresponding project-level override based on `.ocat.json`'s `permission_mode` value. This uses OpenCode's built-in agent permission merge (project override → merges on top of agent definition):
-
-```json
-// Generated by installer into project's .opencode/opencode.json
-// For permission_mode: "auto"
-{
-  "agent": {
-    "ocat-orchestrator": {
-      "permission": {
-        "bash": "allow",
-        "edit": "allow"
-      }
-    }
-  }
-}
-```
-
-Users can also manually edit the generated `opencode.json` for finer control.
-
-**Rationale:** In "auto" mode, quality is ensured by the review/gating process rather than per-command prompts. The mandatory gates (§11.12) at Phase 0, Phase 1, and final delivery provide sufficient human oversight for trusted workflows.
+The `permission_mode` field in `.ocat.json` and the three-tier mode system (`strict`/`balanced`/`auto`) have been removed. Auto-approve is now handled entirely by OpenCode's built-in `--auto` flag or TUI command palette toggle, which requires no framework-level configuration.
 
 ### 11.11 Iterative Delivery Model
 
@@ -1081,7 +977,7 @@ After this design update is approved:
    - Task 3: Configurable gate system (§11.12) — `.ocat.json` gates + `confirm_with_user()`
    - Task 4: Iterative delivery model (§11.11) — multi-stage Phase 2, developer/reviewer loops
    - Task 5: Phase 0 interview flow (§11.13) — structured requirements gathering
-   - Task 6: Permission mode switching (§11.10a) — `.ocat.json` permission_mode + installer
+   - Task 6: ✅ Permission simplified (§11.10) — `bash: ask` only, no permission_mode, auto via `--auto`
    - Task 7: Skill trigger reliability — auto-load ocat skill
    - Task 8: Execution log — NDJSON structured logging
    - Task 9: Interaction strategy refinement — Plan/Smart mode improvements

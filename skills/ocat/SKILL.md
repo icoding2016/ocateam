@@ -328,7 +328,6 @@ The Orchestrator reads a project's `.ocat.json` to determine which subagents are
 {
   "version": "0.3.0",
   "active_agents": ["architect", "developer", "reviewer", "explorer"],
-  "permission_mode": "balanced",
   "gates": {
     "phase_0_requirements": "mandatory",
     "phase_1_design": "mandatory",
@@ -345,6 +344,7 @@ The Orchestrator reads a project's `.ocat.json` to determine which subagents are
 - The effective set is the intersection of `active_agents` and the orchestrator's `permission.task` allowlist
 - If `.ocat.json` is absent, all agents in the allowlist are active
 - Remove entries from the list to deactivate unused agents for a project
+- For auto-approve permissions, use OpenCode's built-in mechanism: `opencode --auto` (CLI) or `ctrl+p` → command palette → toggle (TUI)
 
 ---
 

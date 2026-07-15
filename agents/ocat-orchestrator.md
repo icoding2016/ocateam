@@ -2,7 +2,7 @@
 description: "Lead agent + PM: interviews requirements, plans delivery, delegates to subagents, gates quality, tracks stages end-to-end"
 version: 0.3.0
 mode: primary
-model: opencode-go/qwen3.7-plus
+model: opencode-go/deepseek-v4-flash
 steps: 1000
 permission:
   read: allow
@@ -10,19 +10,7 @@ permission:
   grep: allow
   list: allow
   edit: allow
-  bash:
-    "grep *": allow
-    "find *": allow
-    "cat *": allow
-    "ls *": allow
-    "echo *": allow
-    "date *": allow
-    "mkdir *": allow
-    "cp *": allow
-    "file *": allow
-    "git *": allow
-    "which *": allow
-    "*": ask
+  bash: ask
   webfetch: allow
   websearch: allow
   task:

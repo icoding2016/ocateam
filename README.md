@@ -39,11 +39,10 @@ If you cloned an existing OCATeam project (one that has `.ocat.json` in its root
 
 ```bash
 cd my-project
-./install.sh --project .                       # Install agents + skill
-./install.sh --project . --permission-mode auto # Optional: switch to auto mode
+./install.sh --project .    # Install agents + skill
 ```
 
-The installer copies agents to `.opencode/agents/`, the skill to `.opencode/skills/`, and generates `opencode.json` (gitignored) with any permission mode overrides.
+The installer copies agents to `.opencode/agents/`, the skill to `.opencode/skills/`, and scaffolds `opencode.json` and `.ocat.json` if they don't exist. See [Auto-approve Permissions](#auto-approve-permissions) for how to skip permission prompts.
 
 ### 2. Use
 
@@ -93,7 +92,7 @@ OCATeam uses two config files:
 
 | File | Purpose |
 |------|---------|
-| `.ocat.json` | OCATeam workflow config (gates, permission mode, review limits) |
+| `.ocat.json` | OCATeam workflow config (gates, active agents, review limits) |
 | `opencode.json` | Standard OpenCode config (model overrides, agent permissions) |
 
 ### `.ocat.json` — Workflow Control
@@ -102,7 +101,6 @@ OCATeam uses two config files:
 {
   "version": "0.3.0",
   "active_agents": ["architect", "developer", "reviewer", "explorer"],
-  "permission_mode": "balanced",
   "gates": {
     "phase_0_requirements": "mandatory",
     "phase_1_design": "mandatory",
@@ -126,43 +124,23 @@ OCATeam uses two config files:
 - Phase 0, 1, 3 gates are always mandatory (requirements/design/final delivery are too critical to bypass)
 - `delivery_stage_approval` controls per-stage human approval (default: required)
 
-### Permission Modes
+### Auto-approve Permissions
 
-The orchestrator has three permission profiles, controlled by `permission_mode` in `.ocat.json`:
+The orchestrator agent file uses `bash: ask` — all bash commands prompt for approval.
 
-| Mode | Orchestrator Permission | Use Case |
-|------|------------------------|----------|
-| `strict` | `bash: ask`, `edit: ask` | High-security environments |
-| `balanced` | Granular bash patterns (grep/cat/find/ls/git/echo/cp/file auto-allowed, other commands prompt) | Normal development (**default**) |
-| `auto` | `bash: allow`, `edit: allow` | Trusted, fast-paced workflows |
+To skip prompts for trusted workflows, use OpenCode's built-in auto-approve:
 
-To change the permission mode, use **either** method:
+| Method | How |
+|---|---|
+| **CLI startup** | `opencode --auto` or `opencode run --auto "..."` |
+| **TUI runtime** | `ctrl+p` → command palette → search "auto-approve" → toggle on |
 
-**Method 1 — Automated (recommended):**
-```bash
-# During initial install:
-./install.sh --project ~/code/my-app --permission-mode auto
+Auto mode auto-approves all `ask` requests. Explicit `deny` rules are still enforced.
+The toggle is per-session and not persisted across restarts.
 
-# After install, to switch modes:
-./install.sh --project . --permission-mode strict
-```
-
-This updates `.ocat.json` and generates the `opencode.json` override in one step.
-No full re-install needed — it only syncs the configuration.
-
-**Method 2 — Manual:**
-```bash
-# Edit .ocat.json and change permission_mode:
-#   "permission_mode": "auto"
-
-# Then edit opencode.json to add the corresponding override:
-#   { "agent": { "ocat-orchestrator": { "permission": { "bash": "allow", "edit": "allow" } } } }
-```
-
-Both files are in the project root. The manual approach gives you full control.
-
-**Note for `auto` and `strict` modes:**
-OpenCode reads permission overrides from `opencode.json` (not `.ocat.json`). The installer bridges the gap by reading `.ocat.json`'s `permission_mode` and writing the corresponding override into `opencode.json`. In `balanced` mode, the agent's built-in defaults are sufficient and no override is needed.
+> **Note:** Inline `opencode.json` agent permissions do NOT override agent file permissions.
+> All orchestrator permissions are set directly in `agents/ocat-orchestrator.md`.
+> See `doc/design.md §11.10` for details.
 
 ### Review Limit
 
@@ -199,7 +177,7 @@ Override agent models in the standard OpenCode config:
 }
 ```
 
-> **Why two config files?** `opencode.json` is validated against OpenCode's schema, which rejects unknown keys. OCATeam config lives in `.ocat.json` to avoid schema conflicts. The installer handles permission mode overrides via `opencode.json`'s `agent.<name>.permission` field, which is OpenCode-native.
+> **Why two config files?** `opencode.json` is validated against OpenCode's schema, which rejects unknown keys. OCATeam workflow configuration (gates, active agents, review limits) lives in `.ocat.json` to avoid schema conflicts, while model overrides use the standard OpenCode config.
 
 ## Project Structure
 

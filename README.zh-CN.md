@@ -81,7 +81,7 @@ OCATeam 使用两个配置文件：
 
 | 文件 | 用途 |
 |------|------|
-| `.ocat.json` | OCATeam 工作流配置（门控、权限模式、审查限制） |
+| `.ocat.json` | OCATeam 工作流配置（门控、激活的 agent、审查限制） |
 | `opencode.json` | 标准 OpenCode 配置（模型覆盖、agent 权限） |
 
 ### `.ocat.json` — 工作流控制
@@ -90,7 +90,6 @@ OCATeam 使用两个配置文件：
 {
   "version": "0.3.0",
   "active_agents": ["architect", "developer", "reviewer", "explorer"],
-  "permission_mode": "balanced",
   "gates": {
     "phase_0_requirements": "mandatory",
     "phase_1_design": "mandatory",
@@ -114,38 +113,20 @@ OCATeam 使用两个配置文件：
 - Phase 0、1、3 的门控始终为强制（需求/设计/最终交付太关键，不可跳过）
 - `delivery_stage_approval` 控制每阶段的人工审批（默认：需要）
 
-### 权限模式
+### 自动批准权限
 
-协调者有三级权限配置，通过 `.ocat.json` 的 `permission_mode` 控制：
+协调者 agent 文件使用 `bash: ask` — 所有 bash 命令都需要确认。
 
-| 模式 | 协调者权限 | 适用场景 |
-|------|------------|----------|
-| `strict` | `bash: ask`，`edit: ask` | 高安全环境 |
-| `balanced` | 细粒度 bash 规则（grep/cat/find/ls/git/echo/cp/file 自动允许，其他需确认） | 正常开发（**默认**） |
-| `auto` | `bash: allow`，`edit: allow` | 可信赖的快速工作流 |
+如果你希望跳过确认提示，可以使用 OpenCode 内置的自动批准功能：
 
-切换权限模式有两种方式：
+| 方式 | 操作 |
+|---|---|
+| **CLI 启动** | `opencode --auto` 或 `opencode run --auto "..."` |
+| **TUI 运行时** | `ctrl+p` → 命令面板 → 搜索 "auto-approve" → 开启 |
 
-**方式一 — 自动（推荐）：**
-```bash
-# 安装时指定：
-./install.sh --project ~/code/my-app --permission-mode auto
+自动模式会批准所有 `ask` 请求，但显式的 `deny` 规则仍然生效。切换仅对当前会话有效，重启后不保留。
 
-# 安装后切换：
-./install.sh --project . --permission-mode strict
-```
-一条命令同时更新 `.ocat.json` 和 `opencode.json`，无需重装。
-
-**方式二 — 手动：**
-```bash
-# 编辑 .ocat.json 修改 permission_mode:
-#   "permission_mode": "auto"
-
-# 然后编辑 opencode.json 添加对应覆盖：
-#   { "agent": { "ocat-orchestrator": { "permission": { "bash": "allow", "edit": "allow" } } } }
-```
-
-**注意：** OpenCode 读取 `opencode.json` 中的权限覆盖（不直接读 `.ocat.json`）。安装器负责把 `.ocat.json` 的 `permission_mode` 翻译成 `opencode.json` 中的 agent 权限覆盖。`balanced` 模式使用 agent 内置默认配置，无需覆盖。
+> **注意：** `opencode.json` 中的 agent 权限无法覆盖 agent 文件中的权限。所有协调者权限均在 `agents/ocat-orchestrator.md` 中直接设置。详见 `doc/design.md §11.10`。
 
 ### 审查上限
 
@@ -182,7 +163,7 @@ OCATeam 使用两个配置文件：
 }
 ```
 
-> **为什么有两个配置文件？** `opencode.json` 受 OpenCode schema 校验，会拒绝未知的 key。OCATeam 的配置放在独立的 `.ocat.json` 中，避免 schema 冲突。安装器通过 `opencode.json` 的 `agent.<name>.permission` 字段处理权限模式覆盖，该字段是 OpenCode 原生支持的。
+> **为什么有两个配置文件？** `opencode.json` 受 OpenCode schema 校验，会拒绝未知的 key。OCATeam 工作流配置（门控、激活的 agent、审查限制）放在独立的 `.ocat.json` 中，避免 schema 冲突；模型覆盖使用标准 OpenCode 配置。
 
 ## 项目结构
 

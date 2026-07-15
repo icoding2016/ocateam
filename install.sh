@@ -110,72 +110,6 @@ install_project() {
     warn ".ocat.json already exists — skipped scaffold"
   fi
 
-  # Apply permission_mode override to opencode.json
-  # This uses OpenCode's agent permission merge (project > agent definition)
-  local perm_mode
-  if [ -f "$project_path/.ocat.json" ]; then
-    perm_mode=$(jq -r '.permission_mode // "balanced"' "$project_path/.ocat.json" 2>/dev/null || echo "balanced")
-
-    if [ "$perm_mode" != "balanced" ]; then
-      local opencode_config="$project_path/opencode.json"
-      # Create a temporary override that merges with existing or scaffolded opencode.json
-      local override_opencode="$project_path/.opencode.tmp.json"
-
-      if [ "$perm_mode" = "auto" ]; then
-        log "Applying 'auto' permission mode — orchestrator will have bash: allow, edit: allow"
-        cat > "$override_opencode" << 'PERM_EOF'
-{
-  "agent": {
-    "ocat-orchestrator": {
-      "permission": {
-        "bash": "allow",
-        "edit": "allow",
-        "read": "allow",
-        "glob": "allow",
-        "grep": "allow",
-        "list": "allow",
-        "webfetch": "allow",
-        "websearch": "allow"
-      }
-    }
-  }
-}
-PERM_EOF
-      elif [ "$perm_mode" = "strict" ]; then
-        log "Applying 'strict' permission mode — orchestrator will have bash: ask, edit: ask"
-        cat > "$override_opencode" << 'PERM_EOF'
-{
-  "agent": {
-    "ocat-orchestrator": {
-      "permission": {
-        "bash": "ask",
-        "edit": "ask",
-        "read": "allow",
-        "glob": "allow",
-        "grep": "allow",
-        "list": "allow",
-        "webfetch": "allow",
-        "websearch": "allow"
-      }
-    }
-  }
-}
-PERM_EOF
-      fi
-
-      # Merge override into existing opencode.json using jq if available
-      if command -v jq &>/dev/null && [ -f "$opencode_config" ]; then
-        jq -s '.[0] * .[1]' "$opencode_config" "$override_opencode" > "${opencode_config}.tmp" && \
-          mv "${opencode_config}.tmp" "$opencode_config"
-        log "Merged permission_mode into $opencode_config"
-        rm -f "$override_opencode"
-      else
-        warn "jq not found or opencode.json missing — saved override to $override_opencode"
-        warn "  Manually merge it into $opencode_config"
-      fi
-    fi
-  fi
-
   # Ensure .boards/ is gitignored (runtime state, never committed)
   local gitignore="$project_path/.gitignore"
   if [ -f "$gitignore" ]; then
@@ -244,24 +178,13 @@ print_usage() {
   echo "Examples:"
   echo "  $0 --global                           # Install for all projects"
   echo "  $0 --project ~/code/my-app            # Install for one project"
-  echo "  $0 --project ~/code/my-app --permission-mode auto  # Install + set permission mode"
   echo "  $0 --uninstall --global               # Remove global installation"
   echo "  $0 --uninstall --project ~/code/my-app # Remove from project"
-  echo ""
-  echo "Permission modes:"
-  echo "  auto       - Full auto-approval (bash/edit: allow, no prompts)"
-  echo "  balanced   - Granular bash patterns, read-only tools auto-allowed (default)"
-  echo "  strict     - Require approval for bash and edit"
-  echo ""
-  echo "To change permission mode after install:"
-  echo "  $0 --project . --permission-mode auto   # Sync config only"
-  echo "  # OR manually edit .ocat.json + opencode.json"
 }
 
 # Parse arguments
 UNINSTALL=false
 MODE=""
-PERMISSION_MODE_FLAG=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -278,22 +201,6 @@ while [[ $# -gt 0 ]]; do
       MODE="project"
       PROJECT_PATH="$2"
       shift 2
-      ;;
-    --permission-mode)
-      if [[ -z "${2:-}" ]]; then
-        err "--permission-mode requires a value: auto, strict, or balanced"
-        exit 1
-      fi
-      case "$2" in
-        auto|strict|balanced)
-          PERMISSION_MODE_FLAG="$2"
-          shift 2
-          ;;
-        *)
-          err "Invalid --permission-mode: $2 (use: auto, strict, or balanced)"
-          exit 1
-          ;;
-      esac
       ;;
     --uninstall)
       UNINSTALL=true
@@ -324,26 +231,6 @@ fi
 if [ "$MODE" = "project" ] && [ -z "${PROJECT_PATH:-}" ]; then
   err "--project requires a path argument."
   exit 1
-fi
-
-# If --permission-mode is given, sync it to .ocat.json first
-if [ -n "$PERMISSION_MODE_FLAG" ]; then
-  if [ "$MODE" != "project" ] || [ -z "${PROJECT_PATH:-}" ]; then
-    err "--permission-mode requires --project <path>"
-    exit 1
-  fi
-  ocat_json="$PROJECT_PATH/.ocat.json"
-  if [ -f "$ocat_json" ]; then
-    jq ".permission_mode = \"$PERMISSION_MODE_FLAG\"" "$ocat_json" > "${ocat_json}.tmp" 2>/dev/null && \
-      mv "${ocat_json}.tmp" "$ocat_json" && \
-      log "Updated permission_mode → $PERMISSION_MODE_FLAG in .ocat.json" || \
-      warn "Failed to update .ocat.json (jq required)"
-  else
-    cat > "$ocat_json" << EOF
-{ "permission_mode": "$PERMISSION_MODE_FLAG" }
-EOF
-    log "Created .ocat.json with permission_mode → $PERMISSION_MODE_FLAG"
-  fi
 fi
 
 if $UNINSTALL; then
