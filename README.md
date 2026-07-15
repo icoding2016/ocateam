@@ -223,4 +223,4 @@ POC verified end-to-end: all 5 phases completed on a `hello-cli` test project. S
 
 ## License
 
-MIT
+Apache 2.0

@@ -9,7 +9,7 @@ bats-check:
 	@if command -v bats >/dev/null 2>&1; then \
 		echo "✓ bats found: $$(bats --version)"; \
 	else \
-		echo "✗ bats not found. Install: npm install -g bats"; \
+		echo "✗ bats not found. Install: sudo apt-get install bats"; \
 		echo "  or visit: https://bats-core.readthedocs.io/"; \
 		exit 1; \
 	fi
