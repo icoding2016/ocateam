@@ -218,7 +218,7 @@ Describe "install.ps1" {
             $gitignorePath = Join-Path $TestProject ".gitignore"
             $gitignorePath | Should -Exist
             $content = Get-Content $gitignorePath -Raw
-            $content | Should -Match '(?m)^\.boards/$'
+            $content | Should -Match '(?m)^\.boards/\r?$'
         }
 
         It "appends .boards/ to existing .gitignore" {
@@ -230,7 +230,7 @@ Describe "install.ps1" {
 
             $content = Get-Content $gitignorePath -Raw
             $content | Should -Match 'node_modules/'
-            $content | Should -Match '(?m)^\.boards/$'
+            $content | Should -Match '(?m)^\.boards/\r?$'
         }
 
         It "does not duplicate .boards/ in .gitignore" {
