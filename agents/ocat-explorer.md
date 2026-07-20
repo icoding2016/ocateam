@@ -1,6 +1,6 @@
 ---
 description: "Quick read-only research: codebase inspection, web lookup, small fact-finding tasks"
-version: 0.1.0
+version: 0.3.0
 mode: subagent
 model: opencode-go/deepseek-v4-flash
 steps: 10

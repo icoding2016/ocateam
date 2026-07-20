@@ -246,6 +246,34 @@ Describe "install.ps1" {
         }
     }
 
+        It "uninstall removes all ocat files" {
+            # Install first
+            $r1 = Invoke-InstallerProject -Arguments "-Project `"$TestProject`""
+            $r1.ExitCode | Should -Be 0
+
+            # Then uninstall
+            $r2 = Invoke-InstallerProject -Arguments "-Uninstall -Project `"$TestProject`""
+            $r2.ExitCode | Should -Be 0
+
+            # Agent files should be gone
+            $agentsDir = Join-Path $TestProject ".opencode\agents"
+            $ocatFiles = @(Get-ChildItem "$agentsDir\ocat-*.md" -ErrorAction SilentlyContinue)
+            $ocatFiles.Count | Should -Be 0
+
+            # Skill directory should be gone
+            Join-Path $TestProject ".opencode\skills\ocat" | Should -Not -Exist
+        }
+
+        It "uninstall is idempotent" {
+            Invoke-InstallerProject -Arguments "-Project `"$TestProject`""
+            $r1 = Invoke-InstallerProject -Arguments "-Uninstall -Project `"$TestProject`""
+            $r1.ExitCode | Should -Be 0
+
+            $r2 = Invoke-InstallerProject -Arguments "-Uninstall -Project `"$TestProject`""
+            $r2.ExitCode | Should -Be 0
+        }
+    }
+
     # ── Error Handling Tests ────────────────────────────
 
     Context "Error Handling" {

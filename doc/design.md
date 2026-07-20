@@ -220,20 +220,18 @@ OCATeam uses two configuration files at the project root, each with a distinct r
 ```mermaid
 graph LR
     A["Phase 0: Requirements"] --> B["Phase 1: Design"]
-    B --> C["Phase 2: Implementation"]
-    C --> D["Phase 3: Testing & Debugging"]
-    D --> E["Phase 4: Quality Gate"]
-    E -->|"pass"| F["Done"]
-    E -->|"fail"| C
+    B --> C["Phase 2: Iterative Delivery"]
+    C --> D["Phase 3: Final Delivery & Quality Gate"]
+    D -->|"pass"| F["Done"]
+    D -->|"fail"| C
 ```
 
 | Phase | Owner | Deliverable |
 |-------|-------|-------------|
 | 0: Requirements | Orchestrator (+ Explorer) | Clarified requirements in master board |
 | 1: Design | Architect | Design document, reviewed by Reviewer |
-| 2: Implementation | Developer | Code + tests, gated by Reviewer |
-| 3: Testing & Debugging | Developer | Test results + fixes |
-| 4: Quality Gate | Reviewer | Final verdict across all four review dimensions |
+| 2: Iterative Delivery | Developer + Reviewer | Code + tests per stage, gated per stage |
+| 3: Final Delivery & Quality Gate | Developer + Reviewer | Integration tests + final verdict across all four review dimensions |
 
 ### 5.2 Implement/Refine → Review Cycle
 
@@ -285,7 +283,7 @@ The Orchestrator escalates to the user when:
 
 The `ocat` skill (`skills/ocat/SKILL.md`) is the workflow intelligence layer — separate from agent role definitions. It contains:
 
-- **Phase definitions**: Detailed descriptions of all 5 phases
+- **Phase definitions**: Detailed descriptions of all phases
 - **Coordination rules**: Board file layout, naming conventions, communication conventions
 - **Review cycle**: The implement/refine → review loop with MAX_REVIEW_ITERATIONS
 - **Board templates**: Master board, task board, review verdict format
@@ -372,7 +370,7 @@ ocat/
 1. **Test global install**: ✅ Verified — `./install.sh --global`, agents appear in `~/.config/opencode/agents/`
 2. **Test per-project install**: ✅ Verified — `./install.sh --project <test-project>`, scaffolding correct
 3. **POC run Phase 0+1**: ✅ Verified — Orchestrator + Architect + Reviewer completed design review cycle
-4. **Full pipeline**: ✅ Verified — All 5 phases (0-4) completed end-to-end on `hello-cli` test project
+4. **Full pipeline**: ✅ Verified — All phases completed end-to-end on `hello-cli` test project
 5. **Document results**: ✅ — See `tests/tier3_results.md`
 
 ### Automation
@@ -591,7 +589,7 @@ Add four explicit review dimensions to the Reviewer agent and mandate them in ev
 
 **Implementation:**
 - Update `agents/ocat-reviewer.md` with the four review dimensions and updated output format
-- Update `skills/ocat/SKILL.md` review cycle and Phase 4 description
+- Update `skills/ocat/SKILL.md` review cycle and Phase 3 description
 - Update `agents/ocat-orchestrator.md` Review & Gate responsibility
 - Reviewers must report pass/fail for each dimension in their verdict
 
@@ -981,5 +979,5 @@ After this design update is approved:
    - Task 7: Skill trigger reliability — auto-load ocat skill
    - Task 8: Execution log — NDJSON structured logging
    - Task 9: Interaction strategy refinement — Plan/Smart mode improvements
-4. **Phase 3 (Testing)**: Run full test suite, verify migration, test all gate permutations
-5. **Phase 4 (Quality Gate)**: Final review against this design
+4. **Phase 3 (Final Delivery & Quality Gate)**: Run full test suite, verify migration, test all gate permutations
+5. **Phase 3 cont. (Quality Gate)**: Final review against this design

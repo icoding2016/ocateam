@@ -1,6 +1,6 @@
 ---
 description: System design and delivery plan; produces design doc + stage breakdown; no code
-version: 0.1.0
+version: 0.3.0
 mode: subagent
 model: opencode-go/glm-5.2
 temperature: 0.2

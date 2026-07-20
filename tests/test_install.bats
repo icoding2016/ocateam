@@ -149,6 +149,26 @@ run_project() {
   [ "$count" -eq 1 ]
 }
 
+@test "project: uninstall removes all ocat files" {
+  run run_project --project "$TEST_PROJECT"
+  [ "$status" -eq 0 ]
+  run run_project --uninstall --project "$TEST_PROJECT"
+  [ "$status" -eq 0 ]
+  # Agent files gone
+  run ls "$TEST_PROJECT/.opencode/agents"/ocat-*.md
+  [ "$status" -ne 0 ]
+  # Skill dir gone
+  [ ! -d "$TEST_PROJECT/.opencode/skills/ocat" ]
+}
+
+@test "project: uninstall is idempotent" {
+  run run_project --project "$TEST_PROJECT"
+  run run_project --uninstall --project "$TEST_PROJECT"
+  [ "$status" -eq 0 ]
+  run run_project --uninstall --project "$TEST_PROJECT"
+  [ "$status" -eq 0 ]
+}
+
 # ── Error Handling Tests ─────────────────────────────────
 
 @test "error: fails when agents source missing" {

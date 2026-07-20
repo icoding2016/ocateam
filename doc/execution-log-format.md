@@ -9,7 +9,7 @@ Each log entry is a JSON object with the following fields:
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `ts` | string (ISO 8601) | Yes | Timestamp |
-| `phase` | number (0-4) | Yes | Current workflow phase |
+| `phase` | number (0-3) | Yes | Current workflow phase |
 | `action` | string | Yes | Action type (see below) |
 | `agent` | string | Yes | Agent name (e.g., "ocat-orchestrator") |
 | `msg` | string | Yes | Human-readable message |

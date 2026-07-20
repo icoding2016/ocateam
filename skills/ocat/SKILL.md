@@ -117,27 +117,20 @@ All coordination is document-based via board files in `.boards/`. Agents share t
 - Orchestrator tracks stages via `.boards/orchestrator/<project>/delivery-plan.md`
 - After all stages complete → proceed to Phase 3
 
-### Phase 3: Final Delivery
-**Goal**: Integration testing and final verification.
+### Phase 3: Final Delivery & Quality Gate
+**Goal**: Integration testing / final verification against original requirements.
 **Owner**: Orchestrator → Developer + Reviewer
 **Deliverable**: Fully tested, reviewed project
 
 - Integration testing (full suite)
-- Final Review by Reviewer (4 dimensions)
-- **Gate**: confirm_with_user() — MANDATORY
-- Project delivered
-
-### Phase 4: Quality Gate
-**Goal**: Final verification against original requirements.
-**Owner**: Orchestrator → Reviewer
-**Deliverable**: Final review verdict in `.boards/reviewer/<task_id>/board.md`
-
-- Reviewer applies all four review dimensions:
+- Final Review by Reviewer applying all four review dimensions:
   - **First-Principles Review**: question every element from fundamentals
   - **User-Value Alignment**: check for deviation, omission, over-engineering
   - **Requirement Traceability**: every output must trace to a user requirement
   - **Contamination Detection**: flag anything that doesn't belong to this project's ecosystem
-- Final verdict: APPROVED or NEEDS_REVISION
+- Review verdict: APPROVED or NEEDS_REVISION
+- **Gate**: confirm_with_user() — MANDATORY
+- Project delivered
 
 ---
 
@@ -230,7 +223,7 @@ MAX_REVIEW_ITERATIONS is configured via `.ocat.json.review.max_iterations` (defa
 # Project: <project_name>
 
 ## Status
-- Current Phase: <Phase 0-4>
+- Current Phase: <Phase 0-3>
 - Started: <timestamp>
 - Last Updated: <timestamp>
 
@@ -256,14 +249,10 @@ MAX_REVIEW_ITERATIONS is configured via `.ocat.json.review.max_iterations` (defa
   - [ ] Reviewer loop: review → fix → re-review
   - [ ] Stage gate: [pending/approved/skipped]
 
-### Phase 3: Final Delivery
+### Phase 3: Final Delivery & Quality Gate
 - [ ] Integration test
-- [ ] Final Review
+- [ ] Final Review (4 dimensions: first-principles, user-value, traceability, contamination)
 - [ ] 🔒 Final gate: [pending/approved]
-
-### Phase 4: Quality Gate
-- [ ] Final review against requirements
-- [ ] All gates passed
 
 ## Decisions Log
 - <timestamp>: <decision> — <rationale>
@@ -431,7 +420,7 @@ echo '{"ts":"'$(date -u +"%Y-%m-%dT%H:%M:%SZ")'","phase":2,"action":"task_comple
 ### Log Format
 Each entry is a JSON object:
 ```json
-{"ts":"<ISO 8601>","phase":<0-4>,"action":"<action>","agent":"<agent>","msg":"<message>"}
+{"ts":"<ISO 8601>","phase":<0-3>,"action":"<action>","agent":"<agent>","msg":"<message>"}
 ```
 
 See `doc/execution-log-format.md` for full schema and examples.

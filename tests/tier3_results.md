@@ -13,7 +13,7 @@
 | OpenCode version | v1.17.x |
 | Test directory | `/tmp/ocat-tier3-test` |
 | Install mode | Per-project (`--project`) |
-| Config file | `ocat.json` (discovered during test; see §Design Fix) |
+| Config file | `.ocat.json` (discovered during test; see §Design Fix) |
 
 ### Agent Models Used
 
@@ -27,7 +27,7 @@
 
 ---
 
-## Test 1: POC Phase 0-4 (Full Pipeline) ✅
+## Test 1: POC Phase 0-3 (Full Pipeline) ✅
 
 **Project description:**
 > Create a single Python file hello.py that prints 'Hello, World!' when run, and accepts an optional --name argument (default: 'World') to greet a specific person.
@@ -89,7 +89,7 @@ Error: Configuration is invalid at .../opencode.json
 1. Created `scaffold/ocat.json.snippet` — separate file for OCATeam config
 2. Simplified `scaffold/opencode.json.snippet` to `$schema` only
 3. Updated `install.sh` to scaffold both files
-4. Updated `ocat-orchestrator.md` to read `ocat.json` instead of `opencode.json`
+4. Updated `ocat-orchestrator.md` to read `.ocat.json` instead of `opencode.json`
 5. Updated `skills/ocat/SKILL.md` activation config docs
 6. Updated `doc/design.md` §3.3, §8
 7. Updated `tests/validate.sh` to validate `ocat.json.snippet`
@@ -111,7 +111,7 @@ The review cycle mechanism works correctly. A deliberate NEEDS_REVISION scenario
 
 ## Test 3: Active Agents Filtering 🟡 (deferred)
 
-Not tested. Requires creating a project with `ocat.json` containing only a subset of agents and verifying the orchestrator doesn't delegate to excluded agents. Can be tested manually.
+Not tested. Requires creating a project with `.ocat.json` containing only a subset of agents and verifying the orchestrator doesn't delegate to excluded agents. Can be tested manually.
 
 ---
 
@@ -133,11 +133,11 @@ The Explorer agent was not explicitly delegated to during the POC run because th
 
 | Test | Status |
 |---|---|
-| POC: Phase 0-4 Full Pipeline | ✅ PASSED |
+| POC: Phase 0-3 Full Pipeline | ✅ PASSED |
 | Review Cycle (APPROVED path) | ✅ PASSED |
 | Review Cycle (NEEDS_REVISION path) | 🟡 Deferred |
 | Active Agents Filtering | 🟡 Deferred |
 | MAX_REVIEW_ITERATIONS Escalation | 🟡 Deferred |
 | Explorer Agent | 🟡 Partial |
 
-**Conclusion:** The OCATeam framework successfully delivered a complete project through all 5 phases in a real OpenCode runtime. All 5 agents participated (Orchestrator, Architect, Developer, Reviewer; Explorer not needed for this trivial project). The document-based coordination worked correctly — board files were created, read, and updated by all agents. The implement/refine → review cycle functioned as designed.
+**Conclusion:** The OCATeam framework successfully delivered a complete project through all phases in a real OpenCode runtime. All 5 agents participated (Orchestrator, Architect, Developer, Reviewer; Explorer not needed for this trivial project). The document-based coordination worked correctly — board files were created, read, and updated by all agents. The implement/refine → review cycle functioned as designed.

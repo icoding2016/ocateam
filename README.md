@@ -1,5 +1,9 @@
 # OCATeam — Multi-Agent Project Delivery Framework
 
+[![Test](https://github.com/icoding2016/ocateam/actions/workflows/test.yml/badge.svg)](https://github.com/icoding2016/ocateam/actions/workflows/test.yml)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/version-0.3.0-blue)]()
+
 > 🚀 End-to-end agentic software delivery: requirements → design → implement → test → quality gate.
 > Built on OpenCode's multi-agent runtime. One command to install, zero setup per project.
 
@@ -23,7 +27,7 @@ OCATeam is a reusable **multi-agent framework** for running end-to-end software 
 ### 1. Install (one-time)
 
 ```bash
-git clone https://github.com/YOUR_ORG/ocateam.git
+git clone https://github.com/icoding2016/ocateam.git
 cd ocateam
 
 # Global install: agents available in EVERY project
@@ -75,7 +79,7 @@ OCATeam organizes delivery into distinct phases with **mandatory or configurable
 | 0: Requirements Interview | Orchestrator | Requirements doc (`.boards/.../requirements.md`) | 🔒 Mandatory approval |
 | 1: System Design + Delivery Plan | Architect → Reviewer + Orchestrator | Design doc + multi-stage delivery plan | 🔒 Mandatory approval |
 | 2: Iterative Delivery (N Stages) | Developer → Reviewer (per stage) | Each stage: implemented code + tests + review verdict | 🔓 Configurable (default: required) |
-| 3: Final Delivery | Developer + Reviewer | Integration tests + final review verdict | 🔒 Mandatory approval |
+| 3: Final Delivery & Quality Gate | Developer + Reviewer | Integration tests + final review (4 dimensions) + verdict | 🔒 Mandatory approval |
 
 ### Per-Stage Activity
 
@@ -194,9 +198,14 @@ ocat/
 │   ├── opencode.json.snippet
 │   └── ocat.json.snippet
 ├── install.sh               # One-command installer (global + per-project)
+├── install.ps1              # PowerShell installer (Windows)
+├── scripts/                 # Utility scripts
+│   ├── migrate-v0.2.sh      # Migration from v0.1.x to v0.2.x directory layout
+│   └── view-log.sh          # Execution log viewer (NDJSON)
 ├── tests/                   # Test suite
-│   ├── validate.sh          # Tier 1: 23 static validation checks
+│   ├── validate.sh          # Tier 1: 32 static validation checks
 │   ├── test_install.bats    # Tier 2: 17 functional tests for install.sh
+│   ├── test_install.ps1     # Tier 2: 21 Pester tests for install.ps1
 │   └── tier3_results.md     # Tier 3: POC integration test results
 ├── Makefile                 # make validate, make test, make install-test
 └── doc/                     # Design documents
@@ -210,10 +219,10 @@ ocat/
 ```bash
 make validate        # Tier 1: Static validation (23 checks, <1s)
 make install-test    # Tier 2: Installer functional tests (requires bats)
-make test            # All tests
+make test            # All tests (validate + install-test)
 ```
 
-POC verified end-to-end: all 5 phases completed on a `hello-cli` test project. See `tests/tier3_results.md`.
+POC verified end-to-end: all phases completed on a `hello-cli` test project. See `tests/tier3_results.md`.
 
 ## Requirements
 

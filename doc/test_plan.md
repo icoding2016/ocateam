@@ -90,7 +90,7 @@ OCATeam is "meta-software" — agent definitions (Markdown + YAML frontmatter), 
 | POC Test | Scope | Success Criteria |
 |---|---|---|
 | **POC: Phase 0-1** | Trivial project (e.g., "CLI hello-world in Python"), Requirements + Design with Architect + Reviewer | Design document produced, Reviews pass, Master board updated |
-| **POC: Full pipeline** | Same project, all 5 phases (0-4) through Quality Gate | Working code + tests + approved final review |
+| **POC: Full pipeline** | Same project, all phases (0-3) through Quality Gate | Working code + tests + approved final review |
 | **Review cycle exercise** | Task that deliberately needs revision → verify re-delegation loop | NEEDS_REVISION → Developer fixes → APPROVED (or escalation at iteration 3) |
 | **Active agents filtering** | `active_agents: ["architect", "developer"]` — orchestrator doesn't invoke reviewer/explorer | Non-active agents never receive task delegation |
 | **MAX_REVIEW_ITERATIONS** | Task stuck at NEEDS_REVISION after 3 iterations | Orchestrator escalates to user with summary |
@@ -107,7 +107,7 @@ OCATeam is "meta-software" — agent definitions (Markdown + YAML frontmatter), 
 
 | Aspect | Check |
 |---|---|
-| Orchestrator workflow | Phases 0-4 correctly described; escalation triggers complete |
+| Orchestrator workflow | Phases 0-3 correctly described; escalation triggers complete |
 | Reviewer criteria | All 4 stage types covered (Requirements, Design, Implementation, Tests) |
 | Developer constraints | Test coverage required; architecture-change escalation |
 | Explorer scope | Steps limit tight; read-only enforced |

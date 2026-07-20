@@ -71,8 +71,9 @@ make validate      # Static validation only (always runs)
 
 ## Pull Request Checklist
 
-- [ ] `make validate` passes (23/23 checks)
-- [ ] If installer changed: `make install-test` passes (17/17 tests)
+- [ ] `make validate` passes (all checks)
+- [ ] If installer changed: `make install-test` passes (all tests)
+- [ ] If adding new features: add corresponding tests
 - [ ] If agent prompts changed: manually verify in OpenCode with a trivial project
 - [ ] If `active_agents` or config changed: update both `ocat.json.snippet` and docs
 - [ ] `CHANGELOG.md` updated under `[Unreleased]`
@@ -92,12 +93,56 @@ chore: bump version to 0.1.1
 
 ## Release Process
 
-1. Update `VERSION` file
-2. Update `version:` in all 5 agent files + `SKILL.md`
-3. Update `CHANGELOG.md` — move `[Unreleased]` to dated release section
-4. Commit: `chore: release vX.Y.Z`
-5. Tag: `git tag vX.Y.Z && git push --tags`
+OCATeam uses a lightweight release process suitable for a v0.x project:
+
+### 1. Prepare the Release
+
+- Update `VERSION` file with the new version number
+- Update `version:` field in all 5 agent files (`agents/ocat-*.md`) and `skills/ocat/SKILL.md`
+- Move `[Unreleased]` entries in `CHANGELOG.md` to a new dated release section:
+  ```markdown
+  ## [X.Y.Z] - YYYY-MM-DD
+  
+  ### Added
+  - ...
+  
+  ### Changed
+  - ...
+  
+  ### Fixed
+  - ...
+  ```
+- Commit: `chore: release vX.Y.Z`
+
+### 2. Tag and Push
+
+```bash
+git tag vX.Y.Z
+git push origin main --tags
+```
+
+### 3. Create GitHub Release
+
+1. Go to the [Releases page](https://github.com/icoding2016/ocateam/releases)
+2. Click **Draft a new release**
+3. Choose the tag `vX.Y.Z` created above
+4. Title: `vX.Y.Z`
+5. Copy the relevant section from `CHANGELOG.md` as the release description
+6. Publish
+
+### 4. Post-Release
+
+- Bump `VERSION` and all `version:` fields to the next development version
+- Add a new `[Unreleased]` section to `CHANGELOG.md`
+- Commit: `chore: bump version to X.Y.Z-dev`
+
+### 5. Release Cadence
+
+At this stage (pre-1.0), releases are on-demand when a coherent set of changes is ready. There is no fixed schedule. All releases use [Semantic Versioning](https://semver.org/):
+- **Patch** (0.3.X): bug fixes, minor corrections
+- **Minor** (0.X.0): new features, workflow improvements
+- **Major** (1.0.0): stable public API
 
 ## Code of Conduct
 
-Be respectful. This is a small project — we value clear communication and constructive feedback.
+See [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).

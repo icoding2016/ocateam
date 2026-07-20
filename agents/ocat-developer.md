@@ -1,6 +1,6 @@
 ---
 description: Implementation, tests, debugging; works against design doc
-version: 0.1.0
+version: 0.3.0
 mode: subagent
 model: opencode-go/deepseek-v4-pro
 steps: 30
