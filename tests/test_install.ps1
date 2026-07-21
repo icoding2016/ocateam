@@ -244,7 +244,6 @@ Describe "install.ps1" {
             $matches = $content | Where-Object { $_ -eq '.boards/' }
             $matches.Count | Should -Be 1
         }
-    }
 
         It "uninstall removes all ocat files" {
             # Install first
