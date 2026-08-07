@@ -3,7 +3,7 @@ description: "Quick read-only research: codebase inspection, web lookup, small f
 version: 0.3.0
 mode: subagent
 model: opencode-go/deepseek-v4-flash
-steps: 10
+steps: 30
 permission:
   edit: deny
   bash: deny

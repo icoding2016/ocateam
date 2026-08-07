@@ -3,7 +3,7 @@ description: "Lead agent + PM: interviews requirements, plans delivery, delegate
 version: 0.3.0
 mode: primary
 model: opencode-go/deepseek-v4-flash
-steps: 1000
+steps: 1200
 permission:
   read: allow
   glob: allow

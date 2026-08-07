@@ -2,7 +2,7 @@
 description: System design and delivery plan; produces design doc + stage breakdown; no code
 version: 0.3.0
 mode: subagent
-model: opencode-go/glm-5.2
+model: opencode-go/deepseek-v4-pro
 temperature: 0.2
 steps: 50
 permission:
