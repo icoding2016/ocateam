@@ -137,7 +137,7 @@ To skip prompts for trusted workflows, use OpenCode's built-in auto-approve:
 | Method | How |
 |---|---|
 | **CLI startup** | `opencode --auto` or `opencode run --auto "..."` |
-| **TUI runtime** | `ctrl+p` → command palette → search "auto-approve" → toggle on |
+| **TUI runtime** | `ctrl+p` → command palette → search "Enable auto-approve permissions" → toggle on |
 
 Auto mode auto-approves all `ask` requests. Explicit `deny` rules are still enforced.
 The toggle is per-session and not persisted across restarts.
@@ -178,14 +178,9 @@ To change an agent's model, edit the `model:` field in its agent file directly
 model: opencode-go/deepseek-v4-flash
 ```
 
-> **Why not `opencode.json`?** Verified against OpenCode 1.18.x: a markdown
-> agent file **always wins** over an inline `agent.<name>` entry in
-> `opencode.json` on conflicting fields — for `model` **and** `permission`.
-> An inline JSON entry only fills fields the file does not define, or fully
-> defines agents that have no markdown file. Since OCATeam agent files always
-> define `model`, an `opencode.json` model entry for an OCATeam agent has no
-> effect. See `tests/test_config_precedence.bats` (9 cases) and
-> `doc/design.md §11.11` for the verified precedence rules.
+> **Note:** agent `.md` files take precedence over same-named entries in
+> `opencode.json` — edit the `.md` file to change a model. See
+> `doc/design.md §11.10b` for details.
 
 > **Why two config files?** `opencode.json` is validated against OpenCode's schema, which rejects unknown keys. OCATeam workflow configuration (gates, active agents, review limits) lives in `.ocat.json` to avoid schema conflicts.
 

@@ -126,7 +126,7 @@ OCATeam 使用两个配置文件：
 | 方式 | 操作 |
 |---|---|
 | **CLI 启动** | `opencode --auto` 或 `opencode run --auto "..."` |
-| **TUI 运行时** | `ctrl+p` → 命令面板 → 搜索 "auto-approve" → 开启 |
+| **TUI 运行时** | `ctrl+p` → 命令面板 → 搜索 "Enable auto-approve permissions" → 开启 |
 
 自动模式会批准所有 `ask` 请求，但显式的 `deny` 规则仍然生效。切换仅对当前会话有效，重启后不保留。
 
@@ -164,13 +164,7 @@ OCATeam 使用两个配置文件：
 model: opencode-go/deepseek-v4-flash
 ```
 
-> **为什么不用 `opencode.json`？** 经 OpenCode 1.18.x 实证：只要 markdown
-> agent 文件存在，其已定义的字段（`model` **和** `permission`）**永远胜过**
-> `opencode.json` 中的同名 inline 条目。JSON 条目只会补上文件中缺失的字段，
-> 或在没有任何 markdown 文件时完整定义一个 agent。由于 OCATeam 的 agent
-> 文件总是定义 `model`，在 `opencode.json` 里为 OCATeam agent 写 model 条目
-> 是没有效果的。详见 `tests/test_config_precedence.bats`（9 个用例）和
-> `doc/design.md §11.11` 的验证结论。
+> **注意：** agent `.md` 文件优先于 `opencode.json` 中的同名条目——改模型请直接编辑 `.md` 文件。详见 `doc/design.md §11.10b`。
 
 > **为什么有两个配置文件？** `opencode.json` 受 OpenCode schema 校验，会拒绝未知的 key。OCATeam 工作流配置（门控、激活的 agent、审查限制）放在独立的 `.ocat.json` 中，避免 schema 冲突。
 
