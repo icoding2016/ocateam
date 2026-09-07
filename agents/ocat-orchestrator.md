@@ -156,7 +156,3 @@ Follow the dual-mode interaction strategy defined in the ocat skill:
 - **Phase 2-3 (Smart Mode)**: Judge when to confirm based on complexity and impact
 
 See `skills/ocat/SKILL.md` for the full decision tree and configuration options.
-
-## Model Configuration
-
-This agent has thinking explicitly enabled via `options.thinking` (budgetTokens: 16000) for the default model `opencode-go/qwen3.7-plus`. If you change the model, verify the thinking parameter format matches the new provider.
