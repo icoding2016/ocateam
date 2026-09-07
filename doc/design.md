@@ -689,6 +689,37 @@ All subagent permissions are set directly in their agent files, which is the onl
 
 The `permission_mode` field in `.ocat.json` and the three-tier mode system (`strict`/`balanced`/`auto`) have been removed. Auto-approve is now handled entirely by OpenCode's built-in `--auto` flag or TUI command palette toggle, which requires no framework-level configuration.
 
+### 11.10b Model Override Priority (verified, OpenCode 1.18.x)
+
+**Question:** §11.10 established that agent `.md` files beat inline `opencode.json`
+`agent.<name>.permission` entries. Does the same hold for `model` — i.e., is
+`opencode.json` a working override channel for OCATeam agent models?
+
+**Answer: no.** Verified empirically via `opencode debug agent` against a
+controlled matrix (global file × project file × project `opencode.json`).
+The merge semantics are **per-field, markdown-file-first**:
+
+| Priority | Source | Behavior |
+|---|---|---|
+| 1 (highest) | Project agent `.md` (`<proj>/.opencode/agents/`) | Wins on any conflicting field; defines the agent if present |
+| 2 | Global agent `.md` (`~/.config/opencode/agents/`) | Beats any JSON entry; loses to project file |
+| 3 | Project `opencode.json` `agent.<name>` | Fills only fields the file omits; defines agent only if no `.md` exists |
+| 4 (lowest) | Global `opencode.json` `agent.<name>` | Same as above, one tier lower (standard config merge) |
+
+Key results (see `tests/test_config_precedence.bats`, 9 cases):
+
+- Global file `model: A` + project JSON `model: B` → resolves **A** (JSON ignored).
+- Global file `edit: deny` + project JSON `edit: allow` → resolves **deny**.
+- Project file `model: C` + global file `model: A` + JSON `model: B` → resolves **C**.
+- File without `model` + JSON with `model` → JSON value applies (gap-fill).
+- No `.md` anywhere + JSON entry → agent fully defined from JSON.
+
+**Consequence for OCATeam:** because every OCATeam agent file always defines
+`model`, an `opencode.json` model entry for an OCATeam agent has **no effect**.
+To change a model, edit the agent `.md` file directly. The README's former
+"Model Overrides (`opencode.json`)" section was corrected accordingly —
+it previously documented a non-working mechanism.
+
 ### 11.11 Iterative Delivery Model
 
 **Current Issue:**

@@ -79,6 +79,28 @@ OCATeam is "meta-software" — agent definitions (Markdown + YAML frontmatter), 
 
 **Dependencies:** bats-core (`npm install -g bats` or system package manager).
 
+### Tier 2b: Config Precedence Tests
+
+**Goal:** Verify the verified merge semantics between markdown agent files and
+inline `opencode.json` agent entries (see `doc/design.md §11.10b`).
+
+**Implementation:** `tests/test_config_precedence.bats` (9 cases, requires
+`opencode` binary on PATH; skips gracefully otherwise). Uses
+`opencode debug agent` against isolated fake HOME + project dirs — no LLM
+calls, no credentials needed.
+
+| Test Case | Verified behavior |
+|---|---|
+| `model: global file defines model` | Baseline: file model resolves |
+| `model: project opencode.json does NOT override file model` | File wins on conflict |
+| `model: project file overrides global file` | Project file wins |
+| `model: project file wins over global file AND json` | File wins over everything |
+| `model: JSON-only agent resolves from JSON` | No file → JSON defines agent |
+| `model: JSON fills model missing from file` | Gap-fill for absent fields |
+| `permission: JSON edit does NOT override file` | File wins on conflict |
+| `permission: project file edit wins over JSON` | File wins over JSON |
+| `permission: project file overrides global file` | Project file wins |
+
 ---
 
 ## 5. Tier 3: Integration / POC Testing

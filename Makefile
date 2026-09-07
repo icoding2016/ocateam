@@ -1,4 +1,4 @@
-.PHONY: validate install-test test bats-check
+.PHONY: validate install-test config-test test bats-check
 
 # ── Tier 1: Static validation (no external dependencies beyond Python) ──
 validate:
@@ -17,7 +17,11 @@ bats-check:
 install-test: bats-check
 	bats tests/test_install.bats
 
+# ── Tier 2: Config precedence tests (requires bats + opencode binary) ──
+config-test: bats-check
+	bats tests/test_config_precedence.bats
+
 # ── Run all tests ──
-test: validate install-test
+test: validate install-test config-test
 	@echo ""
 	@echo "All tests passed."

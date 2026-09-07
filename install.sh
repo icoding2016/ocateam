@@ -64,9 +64,10 @@ install_global() {
   echo "    2. Press Tab to switch to the 'ocat-orchestrator' agent"
   echo "    3. Describe your project and the orchestrator will handle the rest"
   echo ""
-  echo "  To customize models, edit: ~/.config/opencode/opencode.json"
-  echo "    Example override:"
-  echo '    { "agent": { "ocat-developer": { "model": "openai/gpt-5" } } }'
+  echo "  To customize models, edit the agent files directly:"
+  echo "    ~/.config/opencode/agents/ocat-*.md  (change the 'model:' field)"
+  echo "  NOTE: opencode.json agent entries do NOT override fields defined"
+  echo "  in agent .md files (verified: file always wins)."
 }
 
 install_project() {

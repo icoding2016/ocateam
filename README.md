@@ -97,7 +97,7 @@ OCATeam uses two config files:
 | File | Purpose |
 |------|---------|
 | `.ocat.json` | OCATeam workflow config (gates, active agents, review limits) |
-| `opencode.json` | Standard OpenCode config (model overrides, agent permissions) |
+| `opencode.json` | Standard OpenCode config (global defaults; does NOT override fields defined in agent `.md` files) |
 
 ### `.ocat.json` — Workflow Control
 
@@ -169,19 +169,25 @@ Controls how many review→fix cycles are allowed per stage before escalation. D
 - Remove entries to deactivate agents for a specific project
 - If `.ocat.json` is absent (global install), all agents are active
 
-### Model Overrides (`opencode.json`)
+### Changing Agent Models (edit the `.md` file)
 
-Override agent models in the standard OpenCode config:
+To change an agent's model, edit the `model:` field in its agent file directly
+(global: `~/.config/opencode/agents/ocat-*.md`, project: `.opencode/agents/ocat-*.md`):
 
-```json
-{
-  "agent": {
-    "ocat-developer": { "model": "openai/gpt-5" }
-  }
-}
+```yaml
+model: opencode-go/deepseek-v4-flash
 ```
 
-> **Why two config files?** `opencode.json` is validated against OpenCode's schema, which rejects unknown keys. OCATeam workflow configuration (gates, active agents, review limits) lives in `.ocat.json` to avoid schema conflicts, while model overrides use the standard OpenCode config.
+> **Why not `opencode.json`?** Verified against OpenCode 1.18.x: a markdown
+> agent file **always wins** over an inline `agent.<name>` entry in
+> `opencode.json` on conflicting fields — for `model` **and** `permission`.
+> An inline JSON entry only fills fields the file does not define, or fully
+> defines agents that have no markdown file. Since OCATeam agent files always
+> define `model`, an `opencode.json` model entry for an OCATeam agent has no
+> effect. See `tests/test_config_precedence.bats` (9 cases) and
+> `doc/design.md §11.11` for the verified precedence rules.
+
+> **Why two config files?** `opencode.json` is validated against OpenCode's schema, which rejects unknown keys. OCATeam workflow configuration (gates, active agents, review limits) lives in `.ocat.json` to avoid schema conflicts.
 
 ## Project Structure
 

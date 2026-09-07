@@ -86,7 +86,7 @@ OCATeam 使用两个配置文件：
 | 文件 | 用途 |
 |------|------|
 | `.ocat.json` | OCATeam 工作流配置（门控、激活的 agent、审查限制） |
-| `opencode.json` | 标准 OpenCode 配置（模型覆盖、agent 权限） |
+| `opencode.json` | 标准 OpenCode 配置（全局默认值；不能覆盖 agent `.md` 文件中已定义的字段） |
 
 ### `.ocat.json` — 工作流控制
 
@@ -155,19 +155,24 @@ OCATeam 使用两个配置文件：
 - 移除条目可停用特定项目的 agent
 - 如果 `.ocat.json` 不存在（全局安装），所有 agent 默认激活
 
-### 模型覆盖 (`opencode.json`)
+### 修改 Agent 模型（直接编辑 `.md` 文件）
 
-在标准 OpenCode 配置中覆盖 agent 模型：
+要修改 agent 的模型，直接编辑其 agent 文件中的 `model:` 字段
+（全局：`~/.config/opencode/agents/ocat-*.md`，项目：`.opencode/agents/ocat-*.md`）：
 
-```json
-{
-  "agent": {
-    "ocat-developer": { "model": "openai/gpt-5" }
-  }
-}
+```yaml
+model: opencode-go/deepseek-v4-flash
 ```
 
-> **为什么有两个配置文件？** `opencode.json` 受 OpenCode schema 校验，会拒绝未知的 key。OCATeam 工作流配置（门控、激活的 agent、审查限制）放在独立的 `.ocat.json` 中，避免 schema 冲突；模型覆盖使用标准 OpenCode 配置。
+> **为什么不用 `opencode.json`？** 经 OpenCode 1.18.x 实证：只要 markdown
+> agent 文件存在，其已定义的字段（`model` **和** `permission`）**永远胜过**
+> `opencode.json` 中的同名 inline 条目。JSON 条目只会补上文件中缺失的字段，
+> 或在没有任何 markdown 文件时完整定义一个 agent。由于 OCATeam 的 agent
+> 文件总是定义 `model`，在 `opencode.json` 里为 OCATeam agent 写 model 条目
+> 是没有效果的。详见 `tests/test_config_precedence.bats`（9 个用例）和
+> `doc/design.md §11.11` 的验证结论。
+
+> **为什么有两个配置文件？** `opencode.json` 受 OpenCode schema 校验，会拒绝未知的 key。OCATeam 工作流配置（门控、激活的 agent、审查限制）放在独立的 `.ocat.json` 中，避免 schema 冲突。
 
 ## 项目结构
 
